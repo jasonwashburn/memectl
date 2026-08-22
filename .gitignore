@@ -4,6 +4,7 @@
 # Binaries for programs and plugins
 memectl
 build/
+dist/
 *.exe
 *.exe~
 *.dll
