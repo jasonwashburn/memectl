@@ -8,6 +8,7 @@ The command tree currently contains only the Cobra root command, and `internal/i
 - Keep command orchestration separate from HTTP request and response handling.
 - Establish a small, testable Imgflip client that later commands can extend.
 - Render a stable, human-readable table from complete API results.
+- Document the command in the README without introducing further documentation surfaces.
 
 **Non-Goals:**
 - Authentication, user configuration, caching, pagination, search, filtering, or machine-readable output.
@@ -39,6 +40,10 @@ Alternative considered: add `memectl templates`. Rejected because it departs fro
 The command will construct terminal output from the returned slice only after the client accepts the response. Each row will include ID, name, box count, and `WIDTHxHEIGHT` dimensions.
 
 Alternative considered: stream rows while decoding. Rejected because an invalid or unsuccessful response must not result in partial output.
+
+### Document the command in the README only
+
+The README will replace its bootstrap-only description with the available template-listing workflow and an invocation example. Additional command reference documentation is deferred until the CLI has more than one user-facing workflow.
 
 ## Risks / Trade-offs
 

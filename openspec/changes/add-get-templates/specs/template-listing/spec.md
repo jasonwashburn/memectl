@@ -18,6 +18,13 @@ For each retrieved template, the command SHALL present its Imgflip identifier, n
 - **WHEN** Imgflip returns a template with an identifier, name, text-box count, width, and height
 - **THEN** the command output SHALL include those values in that template's table row
 
+### Requirement: Document template listing
+The README SHALL describe `memectl get templates` as the available template-discovery command and show how to run it.
+
+#### Scenario: Users discover the command
+- **WHEN** a user reads the README
+- **THEN** they can identify and run `memectl get templates`
+
 ### Requirement: Report unavailable template data
 The command SHALL return a non-zero result and an actionable error when it cannot retrieve or validate the template list. It SHALL NOT display partial or stale template rows in that case.
 

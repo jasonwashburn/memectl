@@ -21,4 +21,5 @@ memectl currently has no feature commands, so users cannot discover the Imgflip 
 
 - Adds Cobra commands under `cmd`.
 - Adds the first HTTP integration and response model in `internal/imgflip`.
+- Updates the README to document the first user-facing command.
 - Uses Imgflip's unauthenticated `get_memes` HTTP endpoint; no configuration, credentials, or new third-party Go dependencies are required.

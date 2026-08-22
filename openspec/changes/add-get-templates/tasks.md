@@ -8,6 +8,10 @@
 - [x] 2.1 Add the `get` command group and `templates` subcommand to the Cobra command tree, then verify `memectl get templates --help` exposes the command.
 - [x] 2.2 Connect `memectl get templates` to the Imgflip client and render each complete result as an ID, name, box-count, and `WIDTHxHEIGHT` table row; verify command tests cover successful output and no output on client failure.
 
-## 3. Verification
+## 3. Documentation
 
-- [x] 3.1 Run `mise run fmt`, `mise run vet`, `mise run test`, and `mise run build` to verify formatting, static analysis, unit tests, and the production build.
+- [ ] 3.1 Update the README to describe `memectl get templates` and show how to run it, replacing the bootstrap-only project status.
+
+## 4. Verification
+
+- [x] 4.1 Run `mise run fmt`, `mise run vet`, `mise run test`, and `mise run build` to verify formatting, static analysis, unit tests, and the production build.
