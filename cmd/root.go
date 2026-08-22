@@ -1,7 +1,10 @@
 // Package cmd contains memectl's Cobra commands.
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/spf13/cobra"
+)
 
 var (
 	// These values may be set with -ldflags during a release build.
@@ -10,11 +13,19 @@ var (
 	date    = "unknown"
 )
 
-var rootCmd = &cobra.Command{
-	Use:     "memectl",
-	Short:   "Generate memes through Imgflip",
-	Long:    "memectl is a command-line tool for generating memes through Imgflip.",
-	Version: version + " (commit: " + commit + ", built: " + date + ")",
+var rootCmd = newRootCmd()
+
+func newRootCmd() *cobra.Command {
+	root := &cobra.Command{
+		Use:           "memectl",
+		Short:         "Generate memes through Imgflip",
+		Long:          "memectl is a command-line tool for generating memes through Imgflip.",
+		Version:       version + " (commit: " + commit + ", built: " + date + ")",
+		SilenceErrors: true,
+		SilenceUsage:  true,
+	}
+	root.AddCommand(newGetCmd(imgflip.NewClient(nil)))
+	return root
 }
 
 // Execute runs the root command.
