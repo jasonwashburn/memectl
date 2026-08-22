@@ -24,6 +24,9 @@ context: |
   - Imgflip integration uses its HTTP API; Imgflip does not provide an
     official Go SDK.
 
+  CLI convention: memectl uses a kubectl-inspired structure:
+  - memectl <verb> <resource> [name] [flags].
+
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
 # Example:
