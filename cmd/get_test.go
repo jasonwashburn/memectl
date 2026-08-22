@@ -50,6 +50,7 @@ func TestGetTemplates(t *testing.T) {
 			command := newTemplatesCmd(test.client)
 			var output bytes.Buffer
 			command.SetOut(&output)
+			command.SetArgs([]string{})
 
 			err := command.Execute()
 			if test.wantErr != "" {

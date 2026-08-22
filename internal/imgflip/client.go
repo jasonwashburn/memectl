@@ -5,9 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
-const memesEndpoint = "https://api.imgflip.com/get_memes"
+const (
+	memesEndpoint  = "https://api.imgflip.com/get_memes"
+	defaultTimeout = 30 * time.Second
+)
 
 // Template is a public Imgflip meme template.
 type Template struct {
@@ -32,10 +36,10 @@ type Client struct {
 	endpoint   string
 }
 
-// NewClient returns an Imgflip client using httpClient. A nil client uses the default client.
+// NewClient returns an Imgflip client using httpClient. A nil client uses a bounded default client.
 func NewClient(httpClient *http.Client) *Client {
 	if httpClient == nil {
-		httpClient = http.DefaultClient
+		httpClient = &http.Client{Timeout: defaultTimeout}
 	}
 
 	return &Client{httpClient: httpClient, endpoint: memesEndpoint}

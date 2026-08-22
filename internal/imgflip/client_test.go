@@ -24,6 +24,13 @@ func TestGetMemesResponseDecodesTemplates(t *testing.T) {
 	}
 }
 
+func TestNewClientUsesDefaultTimeout(t *testing.T) {
+	client := NewClient(nil)
+	if client.httpClient.Timeout != defaultTimeout {
+		t.Fatalf("default timeout = %s, want %s", client.httpClient.Timeout, defaultTimeout)
+	}
+}
+
 func TestClientTemplates(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -35,7 +42,7 @@ func TestClientTemplates(t *testing.T) {
 			name: "success",
 			transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 				if request.URL.String() != memesEndpoint {
-					t.Errorf("request URL = %q, want %q", request.URL, memesEndpoint)
+					t.Errorf("request URL = %q, want %q", request.URL.String(), memesEndpoint)
 				}
 				return response(http.StatusOK, `{"success":true,"data":{"memes":[{"id":"1","name":"Template","box_count":2,"width":100,"height":200}]}}`), nil
 			}),
