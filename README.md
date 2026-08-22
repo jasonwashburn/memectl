@@ -1,5 +1,9 @@
 # memectl
 
+<p align="center">
+  <img src="docs/images/drake-memectl-create.jpg" alt="Drake prefers memectl create over manually clicking through a meme generator" width="320">
+</p>
+
 `memectl` will be a command-line tool for generating memes through Imgflip.
 It is being built as an experiment with [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 and spec-driven development.
