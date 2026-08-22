@@ -35,3 +35,10 @@ The command SHALL return a non-zero result and an actionable error when it canno
 #### Scenario: Template response is invalid
 - **WHEN** Imgflip returns a successful HTTP response that cannot be interpreted as a valid template list
 - **THEN** the command SHALL return an error and SHALL NOT display template rows
+
+### Requirement: Bound default template requests
+The default Imgflip client used by `memectl get templates` SHALL use a finite request timeout so an unresponsive endpoint cannot leave the command running indefinitely.
+
+#### Scenario: Template request times out
+- **WHEN** Imgflip does not respond before the default request timeout expires
+- **THEN** the command SHALL return an error and SHALL NOT display template rows

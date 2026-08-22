@@ -7,6 +7,7 @@ memectl currently has no feature commands, so users cannot discover the Imgflip 
 - Add a `memectl get templates` command that retrieves the public template list from Imgflip.
 - Display each template's identifier, name, text-box count, and dimensions in a readable terminal table.
 - Report retrieval and response failures as command errors without presenting partial or stale template data.
+- Bound default Imgflip requests so an unresponsive endpoint cannot leave the command running indefinitely.
 
 ## Capabilities
 

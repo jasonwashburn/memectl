@@ -23,6 +23,12 @@ The command will use Imgflip's public template-list endpoint and model its succe
 
 Alternative considered: introduce credentials and shared configuration now. Rejected because this endpoint does not require them and the added setup would obstruct the first-use experience.
 
+### Use a finite timeout for the default client
+
+The client constructor will accept an injected HTTP client for tests and callers that need custom transport behavior. When no client is supplied, it will create a dedicated client with a finite timeout so the CLI does not wait indefinitely for Imgflip.
+
+Alternative considered: use `http.DefaultClient`. Rejected because its unbounded timeout can leave a foreground CLI command hanging when the endpoint is unresponsive.
+
 ### Place HTTP behavior in `internal/imgflip`
 
 An Imgflip client will own the endpoint URL, request execution, response decoding, and conversion of unsuccessful or malformed responses into errors. Cobra commands will request templates from that client and render the result.
