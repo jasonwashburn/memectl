@@ -1,0 +1,27 @@
+version: 2
+
+builds:
+  - id: memectl
+    main: .
+    binary: memectl
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/jasonwashburn/memectl/cmd.version={{ .Version }} -X github.com/jasonwashburn/memectl/cmd.commit={{ .Commit }} -X github.com/jasonwashburn/memectl/cmd.date={{ .Date }}
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  mode: keep-existing
+  replace_existing_artifacts: true

@@ -40,7 +40,11 @@ mise run vet
 mise run test
 mise run coverage
 mise run build
+mise run release-snapshot
 ```
+
+`mise run release-snapshot` creates the supported release archives and checksum
+manifest in `dist/` without publishing anything to GitHub.
 
 Run all hk checks manually:
 
