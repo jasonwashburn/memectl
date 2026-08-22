@@ -12,9 +12,16 @@ jobs:
       contents: write
       pull-requests: write
       issues: write
+    env:
+      RELEASE_PLEASE_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
     steps:
+      - name: Skip when release token is not configured
+        if: ${{ env.RELEASE_PLEASE_TOKEN == '' }}
+        run: |
+          echo "::warning title=release-please skipped::Set RELEASE_PLEASE_TOKEN to allow release-please to create release PRs for this repository."
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7
+        if: ${{ env.RELEASE_PLEASE_TOKEN != '' }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ env.RELEASE_PLEASE_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
