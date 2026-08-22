@@ -16,12 +16,16 @@ local go_steps = new Mapping<String, Step> {
   ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
     exclude = List("build/**")
   }
+  ["golangci-fmt"] = new Step {
+    check = "golangci-lint fmt --diff"
+    fix = "golangci-lint fmt"
+    glob = List("**/*.go")
+  }
   ["golangci-lint"] = new Step {
     check = "golangci-lint run ./..."
     fix = "golangci-lint run --fix ./..."
     glob = List("**/*.go", "go.mod", "go.sum")
   }
-  ["go-fmt"] = Builtins.go_fmt
   ["go-vet"] = Builtins.go_vet
   ["go-mod-tidy"] = new Step {
     check = "go mod tidy -diff"
@@ -40,5 +44,11 @@ hooks {
   }
   ["check"] {
     steps = go_steps
+  }
+  ["fix"] {
+    fix = true
+    steps {
+        ...go_steps
+    }
   }
 }

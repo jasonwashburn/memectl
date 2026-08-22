@@ -35,6 +35,7 @@ go run . get templates
 ```sh
 hk install --mise
 mise run fmt
+mise run lint
 mise run vet
 mise run test
 mise run coverage

@@ -36,9 +36,13 @@ func newTemplatesCmd(client templateRetriever) *cobra.Command {
 			}
 
 			writer := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
-			fmt.Fprintln(writer, "ID\tNAME\tBOXES\tDIMENSIONS")
+			if _, err := fmt.Fprintln(writer, "ID\tNAME\tBOXES\tDIMENSIONS"); err != nil {
+				return fmt.Errorf("write template header: %w", err)
+			}
 			for _, template := range templates {
-				fmt.Fprintf(writer, "%s\t%s\t%d\t%dx%d\n", template.ID, template.Name, template.BoxCount, template.Width, template.Height)
+				if _, err := fmt.Fprintf(writer, "%s\t%s\t%d\t%dx%d\n", template.ID, template.Name, template.BoxCount, template.Width, template.Height); err != nil {
+					return fmt.Errorf("write template row: %w", err)
+				}
 			}
 			return writer.Flush()
 		},

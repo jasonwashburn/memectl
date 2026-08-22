@@ -27,7 +27,7 @@ context: |
   CLI convention: memectl uses a kubectl-inspired structure:
   - memectl <verb> <resource> [name] [flags].
 
-  Documentation: 
+  Documentation:
   - changes should consider impact to or creation of relevant documentation
 
 # Per-artifact rules (optional)

@@ -13,7 +13,11 @@ postinstall = "hk install --mise"
 
 [tasks.fmt]
 description = "Format Go source files"
-run = "go fmt ./..."
+run = "golangci-lint fmt"
+
+[tasks.lint]
+description = "Run Go lint checks"
+run = "golangci-lint run ./..."
 
 [tasks.vet]
 description = "Run Go static analysis"
