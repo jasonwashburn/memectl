@@ -17,7 +17,10 @@ run = "go test ./..."
 
 [tasks.coverage]
 description = "Run Go tests with coverage"
-run = "go test ./cmd ./internal/... -coverprofile=coverage.out"
+run = """
+packages=$(go list -f '{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./... | sed '/^$/d')
+go test $packages -coverprofile=coverage.out
+"""
 
 [tasks.build]
 description = "Build the memectl executable"
