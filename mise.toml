@@ -15,6 +15,10 @@ run = "go vet ./..."
 description = "Run Go tests"
 run = "go test ./..."
 
+[tasks.coverage]
+description = "Run Go tests with coverage"
+run = "go test ./cmd ./internal/... -coverprofile=coverage.out"
+
 [tasks.build]
 description = "Build the memectl executable"
 run = """

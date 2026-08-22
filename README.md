@@ -36,6 +36,7 @@ go run . get templates
 mise run fmt
 mise run vet
 mise run test
+mise run coverage
 mise run build
 ```
 
