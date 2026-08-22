@@ -1,0 +1,22 @@
+[tools]
+go = "1.26.7"
+node = "26.7.0"
+
+[tasks.fmt]
+description = "Format Go source files"
+run = "go fmt ./..."
+
+[tasks.vet]
+description = "Run Go static analysis"
+run = "go vet ./..."
+
+[tasks.test]
+description = "Run Go tests"
+run = "go test ./..."
+
+[tasks.build]
+description = "Build the memectl executable"
+run = """
+mkdir -p build
+go build -o build/memectl .
+"""
