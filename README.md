@@ -33,11 +33,18 @@ go run . get templates
 ## Development
 
 ```sh
+hk install --mise
 mise run fmt
 mise run vet
 mise run test
 mise run coverage
 mise run build
+```
+
+Run all hk checks manually:
+
+```sh
+hk check --all
 ```
 
 Run the CLI from source:
