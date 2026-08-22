@@ -10,7 +10,7 @@
 
 ## 3. Documentation
 
-- [ ] 3.1 Update the README to describe `memectl get templates` and show how to run it, replacing the bootstrap-only project status.
+- [x] 3.1 Update the README to describe `memectl get templates` and show how to run it, replacing the bootstrap-only project status.
 
 ## 4. Verification
 
