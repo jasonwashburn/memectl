@@ -19,7 +19,12 @@ run = "go test ./..."
 description = "Run Go tests with coverage"
 run = """
 packages=$(go list -f '{{if or .TestGoFiles .XTestGoFiles}}{{.ImportPath}}{{end}}' ./... | sed '/^$/d')
-go test $packages -coverprofile=coverage.out
+if [ -z "$packages" ]; then
+  echo "No test packages found"
+  exit 0
+fi
+set -- $packages
+go test -coverprofile=coverage.out "$@"
 """
 
 [tasks.build]
