@@ -56,7 +56,9 @@ func (c *Client) Templates(ctx context.Context) ([]Template, error) {
 	if err != nil {
 		return nil, fmt.Errorf("retrieve templates: %w", err)
 	}
-	defer response.Body.Close()
+	defer func() {
+		_ = response.Body.Close()
+	}()
 
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		return nil, fmt.Errorf("retrieve templates: unexpected HTTP status %s", response.Status)

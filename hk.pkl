@@ -1,0 +1,54 @@
+amends "package://github.com/jdx/hk/releases/download/v1.56.0/hk@1.56.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.56.0/hk@1.56.0#/Builtins.pkl"
+
+local go_steps = new Mapping<String, Step> {
+  ["check-added-large-files"] = new Step {
+    check = "hk util check-added-large-files --maxkb=1024 {{files}}"
+    glob = List("**/*")
+    exclude = List("build/**")
+  }
+  ["check-merge-conflict"] = new Step {
+    check = "hk util check-merge-conflict {{files}}"
+    glob = List("**/*")
+    exclude = List("build/**")
+  }
+  ["end-of-file-fixer"] = (Builtins.newlines) {}
+  ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
+    exclude = List("build/**")
+  }
+  ["golangci-fmt"] = new Step {
+    check = "golangci-lint fmt --diff"
+    fix = "golangci-lint fmt"
+    glob = List("**/*.go")
+  }
+  ["golangci-lint"] = new Step {
+    check = "golangci-lint run ./..."
+    fix = "golangci-lint run --fix ./..."
+    glob = List("**/*.go", "go.mod", "go.sum")
+  }
+  ["go-vet"] = Builtins.go_vet
+  ["go-mod-tidy"] = new Step {
+    check = "go mod tidy -diff"
+    fix = "go mod tidy"
+    glob = List("**/*.go", "go.mod", "go.sum")
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps {
+      ...go_steps
+    }
+  }
+  ["check"] {
+    steps = go_steps
+  }
+  ["fix"] {
+    fix = true
+    steps {
+        ...go_steps
+    }
+  }
+}

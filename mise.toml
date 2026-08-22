@@ -1,11 +1,23 @@
 [tools]
 go = "1.26.7"
+golangci-lint = "2.13.1"
+hk = "1.56.0"
 node = "26.7.0"
 "npm:@fission-ai/openspec" = "1.10.0"
 
+[env]
+HK_MISE = "1"
+
+[hooks]
+postinstall = "hk install --mise"
+
 [tasks.fmt]
 description = "Format Go source files"
-run = "go fmt ./..."
+run = "golangci-lint fmt"
+
+[tasks.lint]
+description = "Run Go lint checks"
+run = "golangci-lint run ./..."
 
 [tasks.vet]
 description = "Run Go static analysis"
