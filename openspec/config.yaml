@@ -1,0 +1,47 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+context: |
+  Project: memectl
+  Repository: https://github.com/jasonwashburn/memectl
+  Go module: github.com/jasonwashburn/memectl
+
+  memectl is a hobby project for building a meme-generating CLI using
+  Imgflip's HTTP API.
+
+  Technical foundation:
+  - Implementation language: Go
+  - CLI framework: Cobra
+  - Tool and runtime management: mise
+  - Specification workflow: Fission-AI/OpenSpec
+  - Imgflip integration uses its HTTP API; Imgflip does not provide an
+    official Go SDK.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
