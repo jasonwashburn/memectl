@@ -8,27 +8,29 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetMemesResponseDecodesTemplates(t *testing.T) {
 	const body = `{"success":true,"data":{"memes":[{"id":"181913649","name":"Drake Hotline Bling","box_count":2,"width":1200,"height":1200}]}}`
 
 	var response GetMemesResponse
-	if err := json.NewDecoder(strings.NewReader(body)).Decode(&response); err != nil {
-		t.Fatalf("Decode() error = %v", err)
-	}
+	require.NoError(t, json.NewDecoder(strings.NewReader(body)).Decode(&response))
 
 	template := response.Data.Memes[0]
-	if !response.Success || template.ID != "181913649" || template.Name != "Drake Hotline Bling" || template.BoxCount != 2 || template.Width != 1200 || template.Height != 1200 {
-		t.Fatalf("decoded response = %#v", response)
-	}
+	assert.True(t, response.Success)
+	assert.Equal(t, "181913649", template.ID)
+	assert.Equal(t, "Drake Hotline Bling", template.Name)
+	assert.Equal(t, 2, template.BoxCount)
+	assert.Equal(t, 1200, template.Width)
+	assert.Equal(t, 1200, template.Height)
 }
 
 func TestNewClientUsesDefaultTimeout(t *testing.T) {
 	client := NewClient(nil)
-	if client.httpClient.Timeout != defaultTimeout {
-		t.Fatalf("default timeout = %s, want %s", client.httpClient.Timeout, defaultTimeout)
-	}
+	assert.Equal(t, defaultTimeout, client.httpClient.Timeout)
 }
 
 func TestClientTemplates(t *testing.T) {
@@ -41,9 +43,7 @@ func TestClientTemplates(t *testing.T) {
 		{
 			name: "success",
 			transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
-				if request.URL.String() != memesEndpoint {
-					t.Errorf("request URL = %q, want %q", request.URL.String(), memesEndpoint)
-				}
+				assert.Equal(t, memesEndpoint, request.URL.String())
 				return response(http.StatusOK, `{"success":true,"data":{"memes":[{"id":"1","name":"Template","box_count":2,"width":100,"height":200}]}}`), nil
 			}),
 			want: []Template{{ID: "1", Name: "Template", BoxCount: 2, Width: 100, Height: 200}},
@@ -76,17 +76,12 @@ func TestClientTemplates(t *testing.T) {
 			client := NewClient(&http.Client{Transport: test.transport})
 			got, err := client.Templates(context.Background())
 			if test.wantErr != "" {
-				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-					t.Fatalf("Templates() error = %v, want containing %q", err, test.wantErr)
-				}
+				require.Error(t, err)
+				assert.ErrorContains(t, err, test.wantErr)
 				return
 			}
-			if err != nil {
-				t.Fatalf("Templates() error = %v", err)
-			}
-			if len(got) != len(test.want) || got[0] != test.want[0] {
-				t.Fatalf("Templates() = %#v, want %#v", got, test.want)
-			}
+			require.NoError(t, err)
+			assert.Equal(t, test.want, got)
 		})
 	}
 }
@@ -102,18 +97,10 @@ func TestClientCaptionImage(t *testing.T) {
 		{
 			name: "success",
 			transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
-				if request.Method != http.MethodPost {
-					t.Errorf("request method = %q, want %q", request.Method, http.MethodPost)
-				}
-				if request.URL.String() != captionEndpoint {
-					t.Errorf("request URL = %q, want %q", request.URL.String(), captionEndpoint)
-				}
-				if request.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
-					t.Errorf("Content-Type = %q, want form encoding", request.Header.Get("Content-Type"))
-				}
-				if err := request.ParseForm(); err != nil {
-					t.Fatalf("ParseForm() error = %v", err)
-				}
+				assert.Equal(t, http.MethodPost, request.Method)
+				assert.Equal(t, captionEndpoint, request.URL.String())
+				assert.Equal(t, "application/x-www-form-urlencoded", request.Header.Get("Content-Type"))
+				require.NoError(t, request.ParseForm())
 				wantForm := map[string]string{
 					"template_id":    "181913649",
 					"username":       "meme-user",
@@ -122,9 +109,7 @@ func TestClientCaptionImage(t *testing.T) {
 					"boxes[1][text]": "second",
 				}
 				for key, want := range wantForm {
-					if got := request.Form.Get(key); got != want {
-						t.Errorf("form %q = %q, want %q", key, got, want)
-					}
+					assert.Equal(t, want, request.Form.Get(key), "form %q", key)
 				}
 				return response(http.StatusOK, `{"success":true,"data":{"url":"https://i.imgflip.com/image.jpg","page_url":"https://imgflip.com/i/page"}}`), nil
 			}),
@@ -177,20 +162,13 @@ func TestClientCaptionImage(t *testing.T) {
 				Texts:      []string{"first", "second"},
 			})
 			if test.wantErr != "" {
-				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-					t.Fatalf("CaptionImage() error = %v, want containing %q", err, test.wantErr)
-				}
-				if strings.Contains(err.Error(), password) {
-					t.Fatalf("CaptionImage() error exposed password: %v", err)
-				}
+				require.Error(t, err)
+				assert.ErrorContains(t, err, test.wantErr)
+				assert.NotContains(t, err.Error(), password)
 				return
 			}
-			if err != nil {
-				t.Fatalf("CaptionImage() error = %v", err)
-			}
-			if got != test.want {
-				t.Fatalf("CaptionImage() = %#v, want %#v", got, test.want)
-			}
+			require.NoError(t, err)
+			assert.Equal(t, test.want, got)
 		})
 	}
 }

@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateMemeHelp(t *testing.T) {
@@ -17,12 +17,8 @@ func TestCreateMemeHelp(t *testing.T) {
 	root.SetOut(&output)
 	root.SetArgs([]string{"create", "meme", "--help"})
 
-	if err := root.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v", err)
-	}
-	if !strings.Contains(output.String(), "memectl create meme <template-id>") {
-		t.Fatalf("help output = %q, want meme command", output.String())
-	}
+	require.NoError(t, root.Execute())
+	assert.Contains(t, output.String(), "memectl create meme <template-id>")
 }
 
 func TestCreateMeme(t *testing.T) {
@@ -104,32 +100,19 @@ func TestCreateMeme(t *testing.T) {
 
 			err := command.Execute()
 			if test.wantErr != "" {
-				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-					t.Fatalf("Execute() error = %v, want containing %q", err, test.wantErr)
-				}
-				if output.Len() != 0 {
-					t.Fatalf("output = %q, want no output", output.String())
-				}
-				if calls := test.client.(*fakeMemeClient).calls; calls != test.wantCalls {
-					t.Fatalf("CaptionImage() calls = %d, want %d", calls, test.wantCalls)
-				}
+				require.Error(t, err)
+				assert.ErrorContains(t, err, test.wantErr)
+				assert.Empty(t, output.String())
+				assert.Equal(t, test.wantCalls, test.client.(*fakeMemeClient).calls)
 				return
 			}
-			if err != nil {
-				t.Fatalf("Execute() error = %v", err)
-			}
-			if output.String() != test.want {
-				t.Fatalf("output = %q, want %q", output.String(), test.want)
-			}
+			require.NoError(t, err)
+			assert.Equal(t, test.want, output.String())
 			if test.wantInput != nil {
 				input := test.client.(*fakeMemeClient).input
-				if !reflect.DeepEqual(input, *test.wantInput) {
-					t.Fatalf("CaptionImage() input = %#v, want %#v", input, *test.wantInput)
-				}
+				assert.Equal(t, *test.wantInput, input)
 			}
-			if calls := test.client.(*fakeMemeClient).calls; calls != test.wantCalls {
-				t.Fatalf("CaptionImage() calls = %d, want %d", calls, test.wantCalls)
-			}
+			assert.Equal(t, test.wantCalls, test.client.(*fakeMemeClient).calls)
 		})
 	}
 }

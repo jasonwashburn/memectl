@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetTemplatesHelp(t *testing.T) {
@@ -16,12 +17,8 @@ func TestGetTemplatesHelp(t *testing.T) {
 	root.SetOut(&output)
 	root.SetArgs([]string{"get", "templates", "--help"})
 
-	if err := root.Execute(); err != nil {
-		t.Fatalf("Execute() error = %v", err)
-	}
-	if !strings.Contains(output.String(), "memectl get templates") {
-		t.Fatalf("help output = %q, want templates command", output.String())
-	}
+	require.NoError(t, root.Execute())
+	assert.Contains(t, output.String(), "memectl get templates")
 }
 
 func TestGetTemplates(t *testing.T) {
@@ -54,20 +51,13 @@ func TestGetTemplates(t *testing.T) {
 
 			err := command.Execute()
 			if test.wantErr != "" {
-				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-					t.Fatalf("Execute() error = %v, want containing %q", err, test.wantErr)
-				}
-				if output.Len() != 0 {
-					t.Fatalf("output = %q, want no output", output.String())
-				}
+				require.Error(t, err)
+				assert.ErrorContains(t, err, test.wantErr)
+				assert.Empty(t, output.String())
 				return
 			}
-			if err != nil {
-				t.Fatalf("Execute() error = %v", err)
-			}
-			if output.String() != test.want {
-				t.Fatalf("output = %q, want %q", output.String(), test.want)
-			}
+			require.NoError(t, err)
+			assert.Equal(t, test.want, output.String())
 		})
 	}
 }
