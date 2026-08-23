@@ -30,6 +30,21 @@ List available Imgflip meme templates:
 go run . get templates
 ```
 
+Create a captioned meme from a template. Set your Imgflip account credentials
+in the environment first; they are required only for creation, not template
+listing:
+
+```sh
+export IMGFLIP_USERNAME="your-imgflip-username"
+export IMGFLIP_PASSWORD="your-imgflip-password"
+go run . create meme 181913649 --text "First caption" --text "Second caption"
+```
+
+Use `--text` once for each template text box, in the order Imgflip should
+apply them. On success, memectl prints the direct hosted image URL and its
+Imgflip page URL. Hosted image URLs are publicly accessible to anyone who
+knows the URL.
+
 ## Development
 
 ```sh

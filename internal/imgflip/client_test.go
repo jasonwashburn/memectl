@@ -91,6 +91,110 @@ func TestClientTemplates(t *testing.T) {
 	}
 }
 
+func TestClientCaptionImage(t *testing.T) {
+	const password = "not-for-output"
+	tests := []struct {
+		name      string
+		transport http.RoundTripper
+		want      CaptionImageResult
+		wantErr   string
+	}{
+		{
+			name: "success",
+			transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+				if request.Method != http.MethodPost {
+					t.Errorf("request method = %q, want %q", request.Method, http.MethodPost)
+				}
+				if request.URL.String() != captionEndpoint {
+					t.Errorf("request URL = %q, want %q", request.URL.String(), captionEndpoint)
+				}
+				if request.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+					t.Errorf("Content-Type = %q, want form encoding", request.Header.Get("Content-Type"))
+				}
+				if err := request.ParseForm(); err != nil {
+					t.Fatalf("ParseForm() error = %v", err)
+				}
+				wantForm := map[string]string{
+					"template_id":    "181913649",
+					"username":       "meme-user",
+					"password":       password,
+					"boxes[0][text]": "first",
+					"boxes[1][text]": "second",
+				}
+				for key, want := range wantForm {
+					if got := request.Form.Get(key); got != want {
+						t.Errorf("form %q = %q, want %q", key, got, want)
+					}
+				}
+				return response(http.StatusOK, `{"success":true,"data":{"url":"https://i.imgflip.com/image.jpg","page_url":"https://imgflip.com/i/page"}}`), nil
+			}),
+			want: CaptionImageResult{ImageURL: "https://i.imgflip.com/image.jpg", PageURL: "https://imgflip.com/i/page"},
+		},
+		{
+			name: "transport failure",
+			transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return nil, errors.New("network unavailable")
+			}),
+			wantErr: "create captioned meme",
+		},
+		{
+			name: "HTTP failure",
+			transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return response(http.StatusBadGateway, ""), nil
+			}),
+			wantErr: "unexpected HTTP status",
+		},
+		{
+			name: "unsuccessful response",
+			transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return response(http.StatusOK, `{"success":false,"error_message":"invalid template"}`), nil
+			}),
+			wantErr: "invalid template",
+		},
+		{
+			name: "malformed response",
+			transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return response(http.StatusOK, "{"), nil
+			}),
+			wantErr: "decode caption response",
+		},
+		{
+			name: "missing generated URLs",
+			transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return response(http.StatusOK, `{"success":true,"data":{"url":"https://i.imgflip.com/image.jpg"}}`), nil
+			}),
+			wantErr: "missing generated URLs",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			client := NewClient(&http.Client{Transport: test.transport})
+			got, err := client.CaptionImage(context.Background(), CaptionImageRequest{
+				TemplateID: "181913649",
+				Username:   "meme-user",
+				Password:   password,
+				Texts:      []string{"first", "second"},
+			})
+			if test.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
+					t.Fatalf("CaptionImage() error = %v, want containing %q", err, test.wantErr)
+				}
+				if strings.Contains(err.Error(), password) {
+					t.Fatalf("CaptionImage() error exposed password: %v", err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("CaptionImage() error = %v", err)
+			}
+			if got != test.want {
+				t.Fatalf("CaptionImage() = %#v, want %#v", got, test.want)
+			}
+		})
+	}
+}
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) {
