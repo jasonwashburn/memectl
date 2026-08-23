@@ -24,8 +24,8 @@ Extract the archive, then move `memectl` to your preferred directory on
 directory you use for executables:
 
 ```sh
-tar -xzf memectl_<version>_<os>_<arch>.tar.gz
-mv memectl <directory-on-your-PATH>/
+tar -xzf memectl_VERSION_OS_ARCH.tar.gz
+mv memectl /path/to/bin/
 ```
 
 Verify the installation:
