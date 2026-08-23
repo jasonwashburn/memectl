@@ -33,8 +33,7 @@ local go_steps = new Mapping<String, Step> {
     glob = List("**/*.go", "go.mod", "go.sum")
   }
   ["zizmor"] = new Step {
-    check = "zizmor {{files}}"
-    glob = List(".github/workflows/**/*.yml", ".github/workflows/**/*.yaml")
+    check = "zizmor ."
   }
 }
 
