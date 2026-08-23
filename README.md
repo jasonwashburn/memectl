@@ -2,82 +2,61 @@
 
 <p align="center">
   <img src="docs/images/drake-memectl-create.jpg" alt="Drake prefers memectl create over manually clicking through a meme generator" width="320">
+  <br>
+  <em>Production-Grade Meme Management Tool</em>
 </p>
 
-`memectl` is a command-line tool for generating memes through Imgflip.
-It is being built as an experiment with [OpenSpec](https://github.com/Fission-AI/OpenSpec)
-and spec-driven development.
+`memectl` is a command-line interface for creating memes and other Imgflip
+artifacts. It is an early project that will grow alongside Imgflip's API,
+because meme operations deserve operational rigor.
 
-Use memectl to list public templates or create a captioned meme from a selected
-template. Listing requires no configuration or Imgflip credentials; creation
-uses your Imgflip account credentials from the environment.
+`memectl` is built primarily to evaluate
+[OpenSpec](https://github.com/Fission-AI/OpenSpec) and spec-driven development.
 
-## Prerequisites
+## Install
 
-Install [mise](https://mise.jdx.dev/), then install the pinned toolchain:
+Download the `.tar.gz` archive for your operating system and architecture from
+the [GitHub Releases](https://github.com/jasonwashburn/memectl/releases) page.
+Released archives support macOS and Linux on `amd64` and `arm64`.
+
+Extract the archive, then move `memectl` to your preferred directory on
+`PATH`. Replace the placeholders with the filename you downloaded and the
+directory you use for executables:
 
 ```sh
-mise install
+tar -xzf memectl_VERSION_OS_ARCH.tar.gz
+mv memectl /path/to/bin/
 ```
 
-OpenSpec requires Node.js 20.19.0 or newer; the pinned Node.js release satisfies
-that requirement.
+Verify the installation:
+
+```sh
+memectl --version
+```
 
 ## Usage
 
-List available Imgflip meme templates:
+List available Imgflip meme templates. This command does not require Imgflip
+credentials:
 
 ```sh
-go run . get templates
+memectl get templates
 ```
 
 Create a captioned meme from a template. Set your Imgflip account credentials
-in the environment first; they are required only for creation, not template
-listing:
+first; they are required only for creation:
 
 ```sh
 export IMGFLIP_USERNAME="your-imgflip-username"
 export IMGFLIP_PASSWORD="your-imgflip-password"
-go run . create meme 181913649 --text "First caption" --text "Second caption"
+memectl create meme 181913649 --text "Writing memes manually" --text "Using memectl"
 ```
 
 Use `--text` once for each template text box, in the order Imgflip should
-apply them. On success, memectl prints the direct hosted image URL and its
-Imgflip page URL. Hosted image URLs are publicly accessible to anyone who
-knows the URL.
+apply them. On success, `memectl` prints the hosted image URL and its Imgflip
+page URL. Hosted images are publicly accessible on the internet.
 
-## Development
+## Contributing
 
-```sh
-hk install --mise
-mise run check
-```
-
-`mise run check` formats the code, then runs linting, static analysis, tests,
-and a build. Run individual tasks when you need a more focused check:
-
-```sh
-mise run fmt
-mise run lint
-mise run vet
-mise run test
-mise run coverage
-mise run build
-mise run release-snapshot
-```
-
-`mise run release-snapshot` creates the supported release archives and checksum
-manifest in `dist/` without publishing anything to GitHub.
-
-Run all hk checks manually:
-
-```sh
-hk check --all
-```
-
-Run the CLI from source:
-
-```sh
-go run . --help
-go run . --version
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for source setup, local checks, and
+release snapshots.
