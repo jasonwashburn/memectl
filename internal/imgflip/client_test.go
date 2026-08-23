@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetMemesResponseDecodesTemplates(t *testing.T) {
-	const body = `{"success":true,"data":{"memes":[{"id":"181913649","name":"Drake Hotline Bling","box_count":2,"width":1200,"height":1200}]}}`
+	const body = `{"success":true,"data":{"memes":[{"id":"181913649","name":"Drake Hotline Bling","box_count":2,"width":1200,"height":1200,"url":"https://i.imgflip.com/30b1gx.jpg"}]}}`
 
 	var response GetMemesResponse
 	require.NoError(t, json.NewDecoder(strings.NewReader(body)).Decode(&response))
@@ -26,6 +26,7 @@ func TestGetMemesResponseDecodesTemplates(t *testing.T) {
 	assert.Equal(t, 2, template.BoxCount)
 	assert.Equal(t, 1200, template.Width)
 	assert.Equal(t, 1200, template.Height)
+	assert.Equal(t, "https://i.imgflip.com/30b1gx.jpg", template.URL)
 }
 
 func TestNewClientUsesDefaultTimeout(t *testing.T) {
@@ -44,9 +45,9 @@ func TestClientTemplates(t *testing.T) {
 			name: "success",
 			transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 				assert.Equal(t, memesEndpoint, request.URL.String())
-				return response(http.StatusOK, `{"success":true,"data":{"memes":[{"id":"1","name":"Template","box_count":2,"width":100,"height":200}]}}`), nil
+				return response(http.StatusOK, `{"success":true,"data":{"memes":[{"id":"1","name":"Template","box_count":2,"width":100,"height":200,"url":"https://i.imgflip.com/template.jpg"}]}}`), nil
 			}),
-			want: []Template{{ID: "1", Name: "Template", BoxCount: 2, Width: 100, Height: 200}},
+			want: []Template{{ID: "1", Name: "Template", BoxCount: 2, Width: 100, Height: 200, URL: "https://i.imgflip.com/template.jpg"}},
 		},
 		{
 			name: "transport failure",
