@@ -21,6 +21,8 @@ context: |
   - CLI framework: Cobra
   - Tool and runtime management: mise
   - Specification workflow: Fission-AI/OpenSpec
+  - Testing: Testify (`assert` for non-fatal checks and `require` for
+    prerequisites); use it for all test assertions.
   - Imgflip integration uses its HTTP API; Imgflip does not provide an
     official Go SDK.
 
