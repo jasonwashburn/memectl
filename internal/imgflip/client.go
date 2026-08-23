@@ -24,6 +24,7 @@ type Template struct {
 	BoxCount int    `json:"box_count"`
 	Width    int    `json:"width"`
 	Height   int    `json:"height"`
+	URL      string `json:"url"`
 }
 
 // GetMemesResponse is the response returned by Imgflip's get_memes endpoint.

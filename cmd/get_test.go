@@ -62,6 +62,32 @@ func TestGetTemplates(t *testing.T) {
 	}
 }
 
+func TestGetTemplatesOutputFlag(t *testing.T) {
+	for _, args := range [][]string{{"--output", "wide"}, {"-o", "wide"}} {
+		command := newTemplatesCmd(fakeTemplateClient{templates: []imgflip.Template{
+			{ID: "1", Name: "One Does Not Simply", BoxCount: 2, Width: 568, Height: 335, URL: "https://i.imgflip.com/1.jpg"},
+		}})
+		var output bytes.Buffer
+		command.SetOut(&output)
+		command.SetArgs(args)
+
+		require.NoError(t, command.Execute(), "args %q", args)
+		assert.Equal(t, "ID  NAME                 BOXES  DIMENSIONS  URL\n1   One Does Not Simply  2      568x335     https://i.imgflip.com/1.jpg\n", output.String())
+	}
+}
+
+func TestGetTemplatesRejectsUnsupportedOutput(t *testing.T) {
+	command := newTemplatesCmd(fakeTemplateClient{err: errors.New("client should not be called")})
+	var output bytes.Buffer
+	command.SetOut(&output)
+	command.SetArgs([]string{"--output", "json"})
+
+	err := command.Execute()
+	require.Error(t, err)
+	assert.ErrorContains(t, err, `unsupported output format "json"`)
+	assert.Empty(t, output.String())
+}
+
 type fakeTemplateClient struct {
 	templates []imgflip.Template
 	err       error

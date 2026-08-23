@@ -43,6 +43,12 @@ credentials:
 memectl get templates
 ```
 
+Include each template's direct image URL with wide output to visually preview it:
+
+```sh
+memectl get templates --output wide
+```
+
 Create a captioned meme from a template. Set your Imgflip account credentials
 first; they are required only for creation:
 
