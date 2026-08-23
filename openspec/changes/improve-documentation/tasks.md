@@ -11,5 +11,5 @@
 
 ## 3. Documentation Review
 
-- [ ] 3.1 Review both documents for concise, technically literal instructions with only sparse, meme-native personality; verify no Kubernetes-themed jokes, unsupported installation paths, or copy-paste ambiguity remain, and format every regular-text mention of `memectl` as inline code.
+- [x] 3.1 Review both documents for concise, technically literal instructions with only sparse, meme-native personality; verify no Kubernetes-themed jokes, unsupported installation paths, or copy-paste ambiguity remain, and format every regular-text mention of `memectl` as inline code.
 - [x] 3.2 Run `mise run check` and verify the repository validation suite passes after the documentation changes.
