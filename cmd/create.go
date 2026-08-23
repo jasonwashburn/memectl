@@ -69,7 +69,7 @@ func newMemeCmd(client memeCreator, getenv func(string) string) *cobra.Command {
 			return nil
 		},
 	}
-	memeCmd.Flags().StringSliceVar(&texts, "text", nil, "Caption text (repeatable; required)")
+	memeCmd.Flags().StringArrayVar(&texts, "text", nil, "Caption text (repeatable; required)")
 	return memeCmd
 }
 

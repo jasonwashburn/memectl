@@ -38,11 +38,11 @@ func TestCreateMeme(t *testing.T) {
 	}{
 		{
 			name:      "success",
-			args:      []string{"181913649", "--text", "first", "--text", "second"},
+			args:      []string{"181913649", "--text", "first, still first", "--text", "second"},
 			getenv:    credentials,
 			client:    &fakeMemeClient{result: imgflip.CaptionImageResult{ImageURL: "https://i.imgflip.com/image.jpg", PageURL: "https://imgflip.com/i/page"}},
 			want:      "Created meme from template 181913649.\nImage URL: https://i.imgflip.com/image.jpg\nImgflip page URL: https://imgflip.com/i/page\n",
-			wantInput: &imgflip.CaptionImageRequest{TemplateID: "181913649", Username: "meme-user", Password: "meme-password", Texts: []string{"first", "second"}},
+			wantInput: &imgflip.CaptionImageRequest{TemplateID: "181913649", Username: "meme-user", Password: "meme-password", Texts: []string{"first, still first", "second"}},
 			wantCalls: 1,
 		},
 		{
