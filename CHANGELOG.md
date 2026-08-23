@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/jasonwashburn/memectl/compare/v0.1.0...v0.2.0) (2026-08-23)
+
+
+### Features
+
+* add create meme command ([#20](https://github.com/jasonwashburn/memectl/issues/20)) ([33ca0f1](https://github.com/jasonwashburn/memectl/commit/33ca0f1f1e320e0fb33dd61f9d1fe777e44e1a79))
+
+
+### Specifications
+
+* archive add-automated-release-builds ([#18](https://github.com/jasonwashburn/memectl/issues/18)) ([dd40111](https://github.com/jasonwashburn/memectl/commit/dd40111a1613d7c79d8bfa62f9d12e6cd5e71a37))
+* archive create-captioned-meme ([#21](https://github.com/jasonwashburn/memectl/issues/21)) ([6830cae](https://github.com/jasonwashburn/memectl/commit/6830cae05051a3260fc3eda56005602d11c7d391))
+
 ## [0.1.0](https://github.com/jasonwashburn/memectl/compare/v0.0.1...v0.1.0) (2026-08-22)
 
 
