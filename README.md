@@ -8,8 +8,9 @@
 It is being built as an experiment with [OpenSpec](https://github.com/Fission-AI/OpenSpec)
 and spec-driven development.
 
-The first available command lists the public templates that can be used to generate
-a meme. It requires no configuration or Imgflip credentials.
+Use memectl to list public templates or create a captioned meme from a selected
+template. Listing requires no configuration or Imgflip credentials; creation
+uses your Imgflip account credentials from the environment.
 
 ## Prerequisites
 
