@@ -16,6 +16,7 @@ var (
 var rootCmd = newRootCmd()
 
 func newRootCmd() *cobra.Command {
+	client := imgflip.NewClient(nil)
 	root := &cobra.Command{
 		Use:           "memectl",
 		Short:         "Generate memes through Imgflip",
@@ -24,7 +25,8 @@ func newRootCmd() *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
-	root.AddCommand(newGetCmd(imgflip.NewClient(nil)))
+	root.AddCommand(newCreateCmd(client, defaultGetenv))
+	root.AddCommand(newGetCmd(client))
 	return root
 }
 
