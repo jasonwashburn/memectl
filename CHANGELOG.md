@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.3.0](https://github.com/jasonwashburn/memectl/compare/v0.2.0...v0.3.0) (2026-08-23)
+
+
+### Features
+
+* add wide output format for get templates command ([#28](https://github.com/jasonwashburn/memectl/issues/28)) ([e5c3971](https://github.com/jasonwashburn/memectl/commit/e5c397109093ba5c24478203b832cf2fe469d4b6))
+
+
+### Documentation
+
+* add CONTRIBUTING.md and update README.md ([#26](https://github.com/jasonwashburn/memectl/issues/26)) ([8791938](https://github.com/jasonwashburn/memectl/commit/8791938a71453ec4ea464bf7ea6287b48b65217c))
+
+
+### Tests
+
+* use testify ([#25](https://github.com/jasonwashburn/memectl/issues/25)) ([3716bca](https://github.com/jasonwashburn/memectl/commit/3716bca76460314c89bc32f9427ff4789d85a66b))
+
+
+### Continuous Integration
+
+* add dependency cooldowns to dependabot config ([#22](https://github.com/jasonwashburn/memectl/issues/22)) ([185f740](https://github.com/jasonwashburn/memectl/commit/185f740fc6cf3323567519639f12a147c3c323f7))
+* improve zizmor, mise, and hk configs ([185f740](https://github.com/jasonwashburn/memectl/commit/185f740fc6cf3323567519639f12a147c3c323f7))
+
+
+### Maintenance
+
+* **deps:** bump goreleaser/goreleaser-action from 6.4.0 to 7.2.3 ([#24](https://github.com/jasonwashburn/memectl/issues/24)) ([d3a0868](https://github.com/jasonwashburn/memectl/commit/d3a08688cbcfd0d415a49a01a8e3f7fb5a6444b8))
+
+
+### Specifications
+
+* archive improve-documentation ([#27](https://github.com/jasonwashburn/memectl/issues/27)) ([ed69f2c](https://github.com/jasonwashburn/memectl/commit/ed69f2c3270020f3473235dc3c022a5440719f57))
+
 ## [0.2.0](https://github.com/jasonwashburn/memectl/compare/v0.1.0...v0.2.0) (2026-08-23)
 
 
