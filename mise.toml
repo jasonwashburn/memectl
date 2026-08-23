@@ -17,9 +17,24 @@ postinstall = "hk install --mise"
 description = "Format Go source files"
 run = "golangci-lint fmt"
 
+[tasks.check]
+description = "Format and validate the project after changes"
+run = [
+  { task = "fmt" },
+  { tasks = ["lint", "vet", "test", "build"] },
+]
+
 [tasks.lint]
+description = "Run all lint checks"
+depends = ["lint-go", "lint-workflows"]
+
+[tasks.lint-go]
 description = "Run Go lint checks"
 run = "golangci-lint run ./..."
+
+[tasks.lint-workflows]
+description = "Run GitHub Actions workflow lint checks"
+run = "zizmor .github/workflows"
 
 [tasks.vet]
 description = "Run Go static analysis"

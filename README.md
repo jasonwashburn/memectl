@@ -50,6 +50,13 @@ knows the URL.
 
 ```sh
 hk install --mise
+mise run check
+```
+
+`mise run check` formats the code, then runs linting, static analysis, tests,
+and a build. Run individual tasks when you need a more focused check:
+
+```sh
 mise run fmt
 mise run lint
 mise run vet
