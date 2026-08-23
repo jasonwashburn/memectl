@@ -41,6 +41,8 @@ This gives colleagues and prospective contributors the intended context while av
 
 Documentation must prioritize scanability and commands users can copy. Humor may appear where it arises from the tool’s meme domain, including existing imagery and suitable example content, but must not be forced into instructional copy. Kubernetes terminology and cluster jokes are excluded despite the kubectl-inspired command grammar.
 
+Regular-text mentions of `memectl` in `README.md` and `CONTRIBUTING.md` will use inline code formatting. Headings and image alt text are excluded where code formatting would reduce readability or be unsupported.
+
 ## Risks / Trade-offs
 
 - [Manual installation has more steps than a package manager] -> State the archive and `PATH` steps plainly, and limit claims to the distribution methods that exist.

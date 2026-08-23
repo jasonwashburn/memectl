@@ -8,6 +8,7 @@ The README currently teaches people to run memectl from source, even though supp
 - Preserve a short statement that memectl is also an experiment in OpenSpec and spec-driven development.
 - Add a contributing guide that moves source setup, hooks, checks, source execution, and release-snapshot instructions out of the README.
 - Establish a concise, meme-aware documentation voice without forced jokes or Kubernetes-themed language.
+- Format regular-text mentions of `memectl` as inline code in `README.md` and `CONTRIBUTING.md`.
 
 ## Capabilities
 
