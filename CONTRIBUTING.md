@@ -36,7 +36,7 @@ Run the CLI directly from a checkout:
 ```sh
 go run . --help
 go run . get templates
-go run . create meme 181913649 --text "Writing memes manually" --text "Using memectl"
+go run . create meme writing-memes --template 181913649 --text "Writing memes manually" --text "Using memectl"
 ```
 
 `create meme` requires `IMGFLIP_USERNAME` and `IMGFLIP_PASSWORD` in the

@@ -5,14 +5,16 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/jasonwashburn/memectl/internal/inventory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetTemplatesHelp(t *testing.T) {
-	root := newRootCmd()
+	root := newRootCmd(&fakeMemeStore{})
 	var output bytes.Buffer
 	root.SetOut(&output)
 	root.SetArgs([]string{"get", "templates", "--help"})
@@ -60,6 +62,63 @@ func TestGetTemplates(t *testing.T) {
 			assert.Equal(t, test.want, output.String())
 		})
 	}
+}
+
+func TestGetMemes(t *testing.T) {
+	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
+	store := &fakeMemeStore{memes: []inventory.Meme{
+		{Name: "zebra", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://image/z", PageURL: "https://page/z", CreatedAt: now},
+		{Name: "alpha", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image/a", PageURL: "https://page/a", CreatedAt: now},
+	}}
+	command := newMemesCmdAt(store, func() time.Time { return now })
+	var output bytes.Buffer
+	command.SetOut(&output)
+	require.NoError(t, command.Execute())
+	assert.Equal(t, "NAME   TEMPLATE ID  AGE  IMAGE URL\nalpha  1            0s   https://image/a\nzebra  2            0s   https://image/z\n", output.String())
+}
+
+func TestGetMemesReadsClockOnce(t *testing.T) {
+	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
+	calls := 0
+	command := newMemesCmdAt(&fakeMemeStore{memes: []inventory.Meme{
+		{Name: "first", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://first", PageURL: "https://first", CreatedAt: now},
+		{Name: "second", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://second", PageURL: "https://second", CreatedAt: now},
+	}}, func() time.Time {
+		calls++
+		return now
+	})
+
+	require.NoError(t, command.Execute())
+	assert.Equal(t, 1, calls)
+}
+
+func TestGetMemesWideAndEmpty(t *testing.T) {
+	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
+	for _, args := range [][]string{{"--output", "wide"}, {"-o", "wide"}} {
+		command := newMemesCmdAt(&fakeMemeStore{memes: []inventory.Meme{{Name: "meme", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image", PageURL: "https://page", CreatedAt: now}}}, func() time.Time { return now })
+		var output bytes.Buffer
+		command.SetOut(&output)
+		command.SetArgs(args)
+		require.NoError(t, command.Execute())
+		assert.Equal(t, "NAME  TEMPLATE ID  AGE  IMAGE URL      PAGE URL\nmeme  1            0s   https://image  https://page\n", output.String())
+	}
+	command := newMemesCmd(&fakeMemeStore{})
+	var output bytes.Buffer
+	command.SetOut(&output)
+	require.NoError(t, command.Execute())
+	assert.Equal(t, "No resources found.\n", output.String())
+}
+
+func TestGetMemesErrors(t *testing.T) {
+	command := newMemesCmd(&fakeMemeStore{loadErr: errors.New("corrupt inventory")})
+	err := command.Execute()
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "get memes: corrupt inventory")
+	command = newMemesCmd(&fakeMemeStore{})
+	command.SetArgs([]string{"--output", "json"})
+	err = command.Execute()
+	require.Error(t, err)
+	assert.ErrorContains(t, err, `unable to match a printer suitable for the output format "json"`)
 }
 
 func TestGetTemplatesOutputFlag(t *testing.T) {

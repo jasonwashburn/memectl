@@ -2,7 +2,10 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/jasonwashburn/memectl/internal/inventory"
 	"github.com/spf13/cobra"
 )
 
@@ -13,9 +16,7 @@ var (
 	date    = "unknown"
 )
 
-var rootCmd = newRootCmd()
-
-func newRootCmd() *cobra.Command {
+func newRootCmd(store memeStore) *cobra.Command {
 	client := imgflip.NewClient(nil)
 	root := &cobra.Command{
 		Use:           "memectl",
@@ -25,12 +26,16 @@ func newRootCmd() *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
-	root.AddCommand(newCreateCmd(client, defaultGetenv))
-	root.AddCommand(newGetCmd(client))
+	root.AddCommand(newCreateCmd(client, store, defaultGetenv))
+	root.AddCommand(newGetCmd(client, store))
 	return root
 }
 
 // Execute runs the root command.
 func Execute() error {
-	return rootCmd.Execute()
+	storePath, err := inventory.ResolvePath(defaultGetenv, os.UserHomeDir)
+	if err != nil {
+		return err
+	}
+	return newRootCmd(inventory.New(storePath)).Execute()
 }
