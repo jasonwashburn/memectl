@@ -26,6 +26,10 @@ func newGetCmd(client templateRetriever, store memeStore) *cobra.Command {
 }
 
 func newMemesCmd(store memeStore) *cobra.Command {
+	return newMemesCmdAt(store, time.Now)
+}
+
+func newMemesCmdAt(store memeStore, now func() time.Time) *cobra.Command {
 	var output string
 	command := &cobra.Command{
 		Use:           "memes",
@@ -55,7 +59,7 @@ func newMemesCmd(store memeStore) *cobra.Command {
 				return fmt.Errorf("write meme header: %w", err)
 			}
 			for _, meme := range memes {
-				age := time.Since(meme.CreatedAt).Truncate(time.Second).String()
+				age := now().Sub(meme.CreatedAt).Truncate(time.Second).String()
 				if output == "wide" {
 					_, err = fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\n", meme.Name, meme.TemplateID, age, meme.ImageURL, meme.PageURL)
 				} else {

@@ -65,11 +65,12 @@ func TestGetTemplates(t *testing.T) {
 }
 
 func TestGetMemes(t *testing.T) {
+	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
 	store := &fakeMemeStore{memes: []inventory.Meme{
-		{Name: "zebra", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://image/z", PageURL: "https://page/z", CreatedAt: time.Now().UTC()},
-		{Name: "alpha", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image/a", PageURL: "https://page/a", CreatedAt: time.Now().UTC()},
+		{Name: "zebra", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://image/z", PageURL: "https://page/z", CreatedAt: now},
+		{Name: "alpha", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image/a", PageURL: "https://page/a", CreatedAt: now},
 	}}
-	command := newMemesCmd(store)
+	command := newMemesCmdAt(store, func() time.Time { return now })
 	var output bytes.Buffer
 	command.SetOut(&output)
 	require.NoError(t, command.Execute())
@@ -77,8 +78,9 @@ func TestGetMemes(t *testing.T) {
 }
 
 func TestGetMemesWideAndEmpty(t *testing.T) {
+	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
 	for _, args := range [][]string{{"--output", "wide"}, {"-o", "wide"}} {
-		command := newMemesCmd(&fakeMemeStore{memes: []inventory.Meme{{Name: "meme", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image", PageURL: "https://page", CreatedAt: time.Now().UTC()}}})
+		command := newMemesCmdAt(&fakeMemeStore{memes: []inventory.Meme{{Name: "meme", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image", PageURL: "https://page", CreatedAt: now}}}, func() time.Time { return now })
 		var output bytes.Buffer
 		command.SetOut(&output)
 		command.SetArgs(args)

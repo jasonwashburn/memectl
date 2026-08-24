@@ -63,7 +63,7 @@ func newMemeCmd(client memeCreator, store memeStore, getenv func(string) string)
 				return fmt.Errorf("create meme: %w", err)
 			}
 			if inventory.Contains(memes, name) {
-				return fmt.Errorf("failed to create meme: memes %q already exists", name)
+				return fmt.Errorf("failed to create meme: meme %q already exists", name)
 			}
 
 			username := getenv("IMGFLIP_USERNAME")

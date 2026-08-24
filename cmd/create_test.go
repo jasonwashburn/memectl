@@ -86,7 +86,7 @@ func TestCreateMeme(t *testing.T) {
 			getenv:  credentials,
 			client:  &fakeMemeClient{},
 			store:   &fakeMemeStore{memes: []inventory.Meme{{Name: "meme"}}},
-			wantErr: `failed to create meme: memes "meme" already exists`,
+			wantErr: `failed to create meme: meme "meme" already exists`,
 		},
 		{
 			name:    "missing username",
