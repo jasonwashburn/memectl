@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"syscall"
 	"time"
 )
 
@@ -89,6 +90,19 @@ func (s *Store) Add(meme Meme) error {
 	if err := validateMeme(meme); err != nil {
 		return fmt.Errorf("save meme inventory %q: invalid record: %w", s.path, err)
 	}
+	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
+		return fmt.Errorf("create meme inventory directory for %q: %w", s.path, err)
+	}
+	lock, err := os.OpenFile(s.path+".lock", os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return fmt.Errorf("lock meme inventory %q: %w", s.path, err)
+	}
+	defer func() { _ = lock.Close() }()
+	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
+		return fmt.Errorf("lock meme inventory %q: %w", s.path, err)
+	}
+	defer func() { _ = syscall.Flock(int(lock.Fd()), syscall.LOCK_UN) }()
+
 	memes, err := s.Load()
 	if err != nil {
 		return err
@@ -106,9 +120,6 @@ func (s *Store) write(doc document) error {
 		return fmt.Errorf("serialize meme inventory %q: %w", s.path, err)
 	}
 	contents = append(contents, '\n')
-	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
-		return fmt.Errorf("create meme inventory directory for %q: %w", s.path, err)
-	}
 	temporary, err := os.CreateTemp(filepath.Dir(s.path), ".memes-*")
 	if err != nil {
 		return fmt.Errorf("create temporary meme inventory for %q: %w", s.path, err)
@@ -132,6 +143,14 @@ func (s *Store) write(doc document) error {
 	}
 	if err := os.Rename(temporaryPath, s.path); err != nil {
 		return fmt.Errorf("replace meme inventory %q: %w", s.path, err)
+	}
+	directory, err := os.Open(filepath.Dir(s.path))
+	if err != nil {
+		return fmt.Errorf("open meme inventory directory for %q: %w", s.path, err)
+	}
+	defer func() { _ = directory.Close() }()
+	if err := directory.Sync(); err != nil {
+		return fmt.Errorf("sync meme inventory directory for %q: %w", s.path, err)
 	}
 	return nil
 }

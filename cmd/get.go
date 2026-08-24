@@ -35,7 +35,7 @@ func newMemesCmd(store memeStore) *cobra.Command {
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if output != "" && output != "wide" {
-				return fmt.Errorf("unsupported output format %q", output)
+				return fmt.Errorf("unable to match a printer suitable for the output format %q", output)
 			}
 			memes, err := store.Load()
 			if err != nil {
@@ -55,7 +55,7 @@ func newMemesCmd(store memeStore) *cobra.Command {
 				return fmt.Errorf("write meme header: %w", err)
 			}
 			for _, meme := range memes {
-				age := time.Since(meme.CreatedAt).Round(time.Second).String()
+				age := time.Since(meme.CreatedAt).Truncate(time.Second).String()
 				if output == "wide" {
 					_, err = fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\n", meme.Name, meme.TemplateID, age, meme.ImageURL, meme.PageURL)
 				} else {

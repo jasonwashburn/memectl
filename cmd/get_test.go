@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetTemplatesHelp(t *testing.T) {
-	root := newRootCmd()
+	root := newRootCmd(&fakeMemeStore{})
 	var output bytes.Buffer
 	root.SetOut(&output)
 	root.SetArgs([]string{"get", "templates", "--help"})
@@ -101,7 +101,7 @@ func TestGetMemesErrors(t *testing.T) {
 	command.SetArgs([]string{"--output", "json"})
 	err = command.Execute()
 	require.Error(t, err)
-	assert.ErrorContains(t, err, `unsupported output format "json"`)
+	assert.ErrorContains(t, err, `unable to match a printer suitable for the output format "json"`)
 }
 
 func TestGetTemplatesOutputFlag(t *testing.T) {

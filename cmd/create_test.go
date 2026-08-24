@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateMemeHelp(t *testing.T) {
-	root := newRootCmd()
+	root := newRootCmd(&fakeMemeStore{})
 	var output bytes.Buffer
 	root.SetOut(&output)
 	root.SetArgs([]string{"create", "meme", "--help"})
@@ -86,7 +86,7 @@ func TestCreateMeme(t *testing.T) {
 			getenv:  credentials,
 			client:  &fakeMemeClient{},
 			store:   &fakeMemeStore{memes: []inventory.Meme{{Name: "meme"}}},
-			wantErr: "already exists",
+			wantErr: `failed to create meme: memes "meme" already exists`,
 		},
 		{
 			name:    "missing username",

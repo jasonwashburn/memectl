@@ -27,7 +27,7 @@ One-file-per-meme storage was considered, but makes cross-record consistency, li
 
 The default store is `~/.meme/memes.json`. `MEME_STORE` overrides it as an exact file path, rather than a directory root, to provide direct test isolation and avoid introducing a broad configuration-home contract. The parent directory is only created while persisting a successful creation.
 
-For development activity launched through mise, configure `MEME_STORE` with a fallback value resolving to `<project-root>/.meme/memes.json`. Mise's fallback form preserves an explicitly supplied `MEME_STORE`, so developers and tests can still select their own store without touching persistent user state.
+For development activity launched through mise, configure `MEME_STORE` directly to `<project-root>/.meme/memes.json` so development commands do not touch persistent user state.
 
 ### Separate inventory access from command and Imgflip concerns
 
@@ -35,9 +35,9 @@ Introduce a local inventory abstraction with operations to load/list and persist
 
 ### Validate and check before remote creation
 
-Validate the local name and load the selected inventory before credentials and remote creation proceed. Reject an existing name before calling Imgflip. Re-check the name against the current inventory immediately before the write to prevent a local overwrite if concurrent callers change the store.
+Validate the local name and load the selected inventory before credentials and remote creation proceed. Reject an existing name before calling Imgflip. Acquire an advisory lock around the reload, duplicate check, and atomic write to prevent concurrent callers from overwriting local inventory updates.
 
-A cross-process lock was considered but deferred: it would hold a local lock across a remote request and still cannot turn Imgflip plus a filesystem write into one transaction. The re-check protects the inventory; concurrent invocations can still create an unrecorded duplicate remote meme, which is an accepted limitation for this increment.
+The lock is not held during the remote request and cannot turn Imgflip plus a filesystem write into one transaction. Concurrent invocations can still create an unrecorded duplicate remote meme when the later caller reaches persistence, which is an accepted limitation for this increment.
 
 ### Write atomically and preserve bad state
 
@@ -55,7 +55,7 @@ Remote creation must precede local persistence because the record includes Imgfl
 
 - [Remote meme succeeds but inventory write fails] → Return a non-zero partial-success error with both URLs; preserve no false local success claim.
 - [Store file is manually edited or corrupted] → Validate fully on read, preserve the file, and identify its path in the error.
-- [Concurrent creators use the same name] → Preflight and pre-write checks prevent local overwrite; document that no cross-process transaction exists.
+- [Concurrent creators use the same name] → The local advisory lock preserves inventory updates and rejects the later local record; document that no cross-process transaction with Imgflip exists.
 - [Atomic-write behavior differs by filesystem] → Use a same-directory temporary file and rename, the strongest portable filesystem primitive available.
 
 ## Migration Plan

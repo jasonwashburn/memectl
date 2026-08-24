@@ -20,6 +20,6 @@
 
 ## 4. Documentation and Verification
 
-- [x] 4.1 Add `.meme/` to `.gitignore` and configure a fallback `MEME_STORE` in `mise.toml` resolving to the project-local `.meme/memes.json`; verify mise uses the local store when unset and preserves an explicitly supplied store path.
+- [x] 4.1 Add `.meme/` to `.gitignore` and configure `MEME_STORE` in `mise.toml` to the project-local `.meme/memes.json`; verify mise uses the local store.
 - [x] 4.2 Update README examples and descriptions for named creation, `--template`, managed local listing, default store location, and `MEME_STORE`; verify documented commands match the command help.
 - [x] 4.3 Run `go test ./...` and the project lint/check commands from CONTRIBUTING; verify all checks pass.

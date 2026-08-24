@@ -70,3 +70,24 @@ func TestAddRejectsDuplicate(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, []Meme{meme}, memes)
 }
+
+func TestAddSerializesConcurrentWriters(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "memes.json")
+	first := Meme{Name: "first", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://first", PageURL: "https://first", CreatedAt: time.Now().UTC()}
+	second := Meme{Name: "second", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://second", PageURL: "https://second", CreatedAt: time.Now().UTC()}
+	errs := make(chan error, 2)
+	start := make(chan struct{})
+	for _, meme := range []Meme{first, second} {
+		go func(meme Meme) {
+			<-start
+			errs <- New(path).Add(meme)
+		}(meme)
+	}
+	close(start)
+	require.NoError(t, <-errs)
+	require.NoError(t, <-errs)
+	memes, err := New(path).Load()
+	require.NoError(t, err)
+	SortByName(memes)
+	assert.Equal(t, []Meme{first, second}, memes)
+}
