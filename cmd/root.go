@@ -2,7 +2,11 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/jasonwashburn/memectl/internal/inventory"
 	"github.com/spf13/cobra"
 )
 
@@ -25,8 +29,13 @@ func newRootCmd() *cobra.Command {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}
-	root.AddCommand(newCreateCmd(client, defaultGetenv))
-	root.AddCommand(newGetCmd(client))
+	storePath, err := inventory.ResolvePath(defaultGetenv, os.UserHomeDir)
+	if err != nil {
+		panic(fmt.Sprintf("resolve meme inventory: %v", err))
+	}
+	store := inventory.New(storePath)
+	root.AddCommand(newCreateCmd(client, store, defaultGetenv))
+	root.AddCommand(newGetCmd(client, store))
 	return root
 }
 

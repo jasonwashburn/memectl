@@ -30,6 +30,7 @@ go.work.sum
 # env file
 .env
 mise.local.toml
+.meme/
 
 # Editor/IDE
 # .idea/

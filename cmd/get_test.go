@@ -5,8 +5,10 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/jasonwashburn/memectl/internal/imgflip"
+	"github.com/jasonwashburn/memectl/internal/inventory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -60,6 +62,46 @@ func TestGetTemplates(t *testing.T) {
 			assert.Equal(t, test.want, output.String())
 		})
 	}
+}
+
+func TestGetMemes(t *testing.T) {
+	store := &fakeMemeStore{memes: []inventory.Meme{
+		{Name: "zebra", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://image/z", PageURL: "https://page/z", CreatedAt: time.Now().UTC()},
+		{Name: "alpha", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image/a", PageURL: "https://page/a", CreatedAt: time.Now().UTC()},
+	}}
+	command := newMemesCmd(store)
+	var output bytes.Buffer
+	command.SetOut(&output)
+	require.NoError(t, command.Execute())
+	assert.Equal(t, "NAME   TEMPLATE ID  AGE  IMAGE URL\nalpha  1            0s   https://image/a\nzebra  2            0s   https://image/z\n", output.String())
+}
+
+func TestGetMemesWideAndEmpty(t *testing.T) {
+	for _, args := range [][]string{{"--output", "wide"}, {"-o", "wide"}} {
+		command := newMemesCmd(&fakeMemeStore{memes: []inventory.Meme{{Name: "meme", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image", PageURL: "https://page", CreatedAt: time.Now().UTC()}}})
+		var output bytes.Buffer
+		command.SetOut(&output)
+		command.SetArgs(args)
+		require.NoError(t, command.Execute())
+		assert.Equal(t, "NAME  TEMPLATE ID  AGE  IMAGE URL      PAGE URL\nmeme  1            0s   https://image  https://page\n", output.String())
+	}
+	command := newMemesCmd(&fakeMemeStore{})
+	var output bytes.Buffer
+	command.SetOut(&output)
+	require.NoError(t, command.Execute())
+	assert.Equal(t, "No resources found.\n", output.String())
+}
+
+func TestGetMemesErrors(t *testing.T) {
+	command := newMemesCmd(&fakeMemeStore{loadErr: errors.New("corrupt inventory")})
+	err := command.Execute()
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "get memes: corrupt inventory")
+	command = newMemesCmd(&fakeMemeStore{})
+	command.SetArgs([]string{"--output", "json"})
+	err = command.Execute()
+	require.Error(t, err)
+	assert.ErrorContains(t, err, `unsupported output format "json"`)
 }
 
 func TestGetTemplatesOutputFlag(t *testing.T) {

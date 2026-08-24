@@ -49,18 +49,33 @@ Include each template's direct image URL with wide output to visually preview it
 memectl get templates --output wide
 ```
 
-Create a captioned meme from a template. Set your Imgflip account credentials
-first; they are required only for creation:
+Create a named, managed captioned meme from a template. Set your Imgflip account
+credentials first; they are required only for creation:
 
 ```sh
 export IMGFLIP_USERNAME="your-imgflip-username"
 export IMGFLIP_PASSWORD="your-imgflip-password"
-memectl create meme 181913649 --text "Writing memes manually" --text "Using memectl"
+memectl create meme writing-memes --template 181913649 --text "Writing memes manually" --text "Using memectl"
 ```
 
 Use `--text` once for each template text box, in the order Imgflip should
-apply them. On success, `memectl` prints the hosted image URL and its Imgflip
-page URL. Hosted images are publicly accessible on the internet.
+apply them. On success, `memectl` stores the meme's name, template, text, and
+hosted URLs in `~/.meme/memes.json`, then prints the hosted image URL and its
+Imgflip page URL. Hosted images are publicly accessible on the internet.
+
+List the locally managed memes without contacting Imgflip:
+
+```sh
+memectl get memes
+memectl get memes --output wide
+```
+
+Set `MEME_STORE` to use an exact alternate inventory file path. This is useful
+for isolated environments and tests:
+
+```sh
+MEME_STORE=/tmp/memes.json memectl get memes
+```
 
 ## Contributing
 

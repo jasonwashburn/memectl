@@ -9,6 +9,7 @@ zizmor = "1.29.0"
 
 [env]
 HK_MISE = "1"
+MEME_STORE = "{{ config_root }}/.meme/memes.json"
 
 [hooks]
 postinstall = "hk install --mise"
