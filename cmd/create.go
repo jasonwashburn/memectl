@@ -38,10 +38,10 @@ func newMemeCmd(client memeCreator, store memeStore, getenv func(string) string)
 		Short: "Create a captioned meme",
 		Args: func(_ *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return fmt.Errorf("create meme: a local meme name is required")
+				return fmt.Errorf("failed to create meme: a local meme name is required")
 			}
 			if len(args) > 1 {
-				return fmt.Errorf("create meme: accepts exactly one local meme name")
+				return fmt.Errorf("failed to create meme: accepts exactly one local meme name")
 			}
 			return nil
 		},
@@ -49,18 +49,18 @@ func newMemeCmd(client memeCreator, store memeStore, getenv func(string) string)
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(texts) == 0 {
-				return fmt.Errorf("create meme: at least one --text value is required")
+				return fmt.Errorf("failed to create meme: at least one --text value is required")
 			}
 			if templateID == "" {
-				return fmt.Errorf("create meme: --template is required")
+				return fmt.Errorf("failed to create meme: --template is required")
 			}
 			name := args[0]
 			if !inventory.ValidName(name) {
-				return fmt.Errorf("create meme: name %q must be a DNS-label-like value", name)
+				return fmt.Errorf("failed to create meme: name %q must be a DNS-label-like value", name)
 			}
 			memes, err := store.Load()
 			if err != nil {
-				return fmt.Errorf("create meme: %w", err)
+				return fmt.Errorf("failed to create meme: %w", err)
 			}
 			if inventory.Contains(memes, name) {
 				return fmt.Errorf("failed to create meme: meme %q already exists", name)
@@ -68,11 +68,11 @@ func newMemeCmd(client memeCreator, store memeStore, getenv func(string) string)
 
 			username := getenv("IMGFLIP_USERNAME")
 			if username == "" {
-				return fmt.Errorf("create meme: IMGFLIP_USERNAME must be set")
+				return fmt.Errorf("failed to create meme: IMGFLIP_USERNAME must be set")
 			}
 			password := getenv("IMGFLIP_PASSWORD")
 			if password == "" {
-				return fmt.Errorf("create meme: IMGFLIP_PASSWORD must be set")
+				return fmt.Errorf("failed to create meme: IMGFLIP_PASSWORD must be set")
 			}
 
 			result, err := client.CaptionImage(cmd.Context(), imgflip.CaptionImageRequest{
@@ -82,7 +82,7 @@ func newMemeCmd(client memeCreator, store memeStore, getenv func(string) string)
 				Texts:      texts,
 			})
 			if err != nil {
-				return fmt.Errorf("create meme: %w", err)
+				return fmt.Errorf("failed to create meme: %w", err)
 			}
 
 			record := inventory.Meme{Name: name, TemplateID: templateID, Texts: texts, ImageURL: result.ImageURL, PageURL: result.PageURL, CreatedAt: time.Now().UTC()}
@@ -90,7 +90,7 @@ func newMemeCmd(client memeCreator, store memeStore, getenv func(string) string)
 				if _, writeErr := fmt.Fprintf(cmd.OutOrStdout(), "Meme %q was created remotely but was not recorded locally.\nImage URL: %s\nImgflip page URL: %s\n", name, result.ImageURL, result.PageURL); writeErr != nil {
 					return fmt.Errorf("write unrecorded meme: %w", writeErr)
 				}
-				return fmt.Errorf("create meme: remote meme %q was not recorded locally: %w", name, err)
+				return fmt.Errorf("failed to create meme: remote meme %q was not recorded locally: %w", name, err)
 			}
 			if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Created meme %q from template %s.\nImage URL: %s\nImgflip page URL: %s\n", name, templateID, result.ImageURL, result.PageURL); err != nil {
 				return fmt.Errorf("write created meme: %w", err)

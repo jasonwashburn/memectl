@@ -58,8 +58,9 @@ func newMemesCmdAt(store memeStore, now func() time.Time) *cobra.Command {
 			if _, err := fmt.Fprintln(writer, header); err != nil {
 				return fmt.Errorf("write meme header: %w", err)
 			}
+			currentTime := now()
 			for _, meme := range memes {
-				age := now().Sub(meme.CreatedAt).Truncate(time.Second).String()
+				age := currentTime.Sub(meme.CreatedAt).Truncate(time.Second).String()
 				if output == "wide" {
 					_, err = fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t%s\n", meme.Name, meme.TemplateID, age, meme.ImageURL, meme.PageURL)
 				} else {

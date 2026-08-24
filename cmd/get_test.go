@@ -77,6 +77,21 @@ func TestGetMemes(t *testing.T) {
 	assert.Equal(t, "NAME   TEMPLATE ID  AGE  IMAGE URL\nalpha  1            0s   https://image/a\nzebra  2            0s   https://image/z\n", output.String())
 }
 
+func TestGetMemesReadsClockOnce(t *testing.T) {
+	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
+	calls := 0
+	command := newMemesCmdAt(&fakeMemeStore{memes: []inventory.Meme{
+		{Name: "first", TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://first", PageURL: "https://first", CreatedAt: now},
+		{Name: "second", TemplateID: "2", Texts: []string{"text"}, ImageURL: "https://second", PageURL: "https://second", CreatedAt: now},
+	}}, func() time.Time {
+		calls++
+		return now
+	})
+
+	require.NoError(t, command.Execute())
+	assert.Equal(t, 1, calls)
+}
+
 func TestGetMemesWideAndEmpty(t *testing.T) {
 	now := time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)
 	for _, args := range [][]string{{"--output", "wide"}, {"-o", "wide"}} {
