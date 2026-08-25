@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -36,35 +37,25 @@ func newDeleteMemeCmd(store memeStore) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			absent, err := store.Remove(args)
-			if err != nil {
-				return fmt.Errorf("failed to delete meme: %w", err)
-			}
-			absentCount := make(map[string]int, len(absent))
-			for _, name := range absent {
-				absentCount[name]++
-			}
-			requestedCount := make(map[string]int, len(args))
+			var failures []string
 			for _, name := range args {
-				requestedCount[name]++
-			}
-			for _, name := range args {
-				if requestedCount[name] == absentCount[name] {
+				err := store.Remove(name)
+				if errors.Is(err, inventory.ErrNotFound) {
+					failures = append(failures, fmt.Sprintf("meme %q not found", name))
 					continue
 				}
-				requestedCount[name]--
+				if err != nil {
+					failures = append(failures, fmt.Sprintf("delete meme %q: %v", name, err))
+					continue
+				}
 				if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Meme %q deleted.\n", name); err != nil {
 					return fmt.Errorf("write deleted meme: %w", err)
 				}
 			}
-			if len(absent) == 0 {
+			if len(failures) == 0 {
 				return nil
 			}
-			notFound := make([]string, len(absent))
-			for i, name := range absent {
-				notFound[i] = fmt.Sprintf("meme %q not found", name)
-			}
-			return fmt.Errorf("failed to delete meme: %s", strings.Join(notFound, "; "))
+			return fmt.Errorf("failed to delete meme: %s", strings.Join(failures, "; "))
 		},
 	}
 }

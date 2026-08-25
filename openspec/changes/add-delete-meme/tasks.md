@@ -1,12 +1,12 @@
 ## 1. Local Inventory Removal
 
-- [x] 1.1 Add shared locking for atomic inventory mutations and a removal operation that processes requested names in order, removes every present record once, preserves a valid empty versioned document, and reports absent requests separately from storage failures; verify with inventory unit tests for single and multiple removal, final-record removal, mixed present-and-absent batches, duplicate names, wholly absent batches, corrupt state, and write failures.
-- [x] 1.2 Extend the command store contract for record removal and update affected test doubles; verify all command packages compile and existing create/list tests continue to pass.
+- [x] 1.1 Add shared locking for atomic inventory mutations and a single-record removal operation that preserves a valid empty versioned document, distinguishes absence, pre-replacement failures, and post-replacement durability uncertainty; verify with inventory unit tests for single and final-record removal, corrupt state, pre-replacement write failures, and post-replacement directory-sync failures.
+- [x] 1.2 Change the command store contract to a single-record removal operation and update affected test doubles; verify all command packages compile and existing create/list tests continue to pass.
 
 ## 2. Delete Command
 
 - [x] 2.1 Add and register `memectl delete meme <name> [<name>...]` with at-least-one-name and per-name local-name validation; verify command tests cover missing and invalid names without mutating the inventory.
-- [x] 2.2 Connect the command to the inventory removal operation, report every successful deletion, and return a non-zero named-resource not-found error for every absent request; verify command tests cover deletion of one and multiple records, preservation of other records, deletion of the final records, mixed present-and-absent batches, and duplicate names.
+- [x] 2.2 Invoke the inventory removal operation once for each supplied name in order, report every successful deletion, and return a non-zero named-resource not-found error for every absent request; verify command tests cover deletion of one and multiple records, preservation of other records, deletion of the final records, mixed present-and-absent batches, duplicate names, and a later storage failure after earlier success.
 - [x] 2.3 Ensure the delete command uses no Imgflip client or credentials and documents local-only scope in command help; verify command tests demonstrate deletion succeeds without credentials or remote calls.
 
 ## 3. Documentation And Verification

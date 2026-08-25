@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -167,6 +168,7 @@ type fakeMemeStore struct {
 	loadErr     error
 	addErr      error
 	removeErr   error
+	removeErrs  map[string]error
 	removeCalls int
 }
 
@@ -179,33 +181,21 @@ func (s *fakeMemeStore) Add(meme inventory.Meme) error {
 	return nil
 }
 
-func (s *fakeMemeStore) Remove(names []string) ([]string, error) {
+func (s *fakeMemeStore) Remove(name string) error {
 	s.removeCalls++
 	if s.removeErr != nil {
-		return nil, s.removeErr
+		return s.removeErr
 	}
-	available := make(map[string]bool, len(s.memes))
-	for _, meme := range s.memes {
-		available[meme.Name] = true
+	if err := s.removeErrs[name]; err != nil {
+		return err
 	}
-	removed := make(map[string]bool, len(names))
-	var absent []string
-	for _, name := range names {
-		if available[name] {
-			delete(available, name)
-			removed[name] = true
-			continue
-		}
-		absent = append(absent, name)
-	}
-	retained := make([]inventory.Meme, 0, len(s.memes)-len(removed))
-	for _, meme := range s.memes {
-		if !removed[meme.Name] {
-			retained = append(retained, meme)
+	for i, meme := range s.memes {
+		if meme.Name == name {
+			s.memes = append(s.memes[:i], s.memes[i+1:]...)
+			return nil
 		}
 	}
-	s.memes = retained
-	return absent, nil
+	return fmt.Errorf("meme %q: %w", name, inventory.ErrNotFound)
 }
 
 func credentials(key string) string {

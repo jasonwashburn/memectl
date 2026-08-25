@@ -5,8 +5,8 @@ Managed memes can be created and listed, but users cannot remove stale or unwant
 ## What Changes
 
 - Add `memectl delete meme <name> [<name>...]` to remove one or more named managed-meme records from the selected local inventory.
-- Process each requested name as an individual deletion request within one local inventory mutation: delete locally present names, report absent names (including repeated names after their first deletion) as not found, and return a non-zero result when any name is absent.
-- Preserve the inventory's atomic-update and validation guarantees, including a valid empty versioned document after its final record is deleted.
+- Process each requested name as an independent local inventory operation: delete locally present names, report absent names (including repeated names after their first deletion) as not found, and return a non-zero result when any name is absent. Successful earlier requests remain applied when a later request fails.
+- Preserve the inventory's atomic-update and validation guarantees for each individual operation, including a valid empty versioned document after its final record is deleted and accurate reporting when replacement succeeds but durable persistence cannot be confirmed.
 - Document that deletion is local only and does not contact Imgflip or affect the hosted image.
 
 ## Capabilities

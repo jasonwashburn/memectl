@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Delete managed meme records
-The system SHALL provide `memectl delete meme <name> [<name>...]` to remove one or more named managed-meme records from the selected local inventory. It SHALL validate every supplied name, SHALL require at least one name, and SHALL make no Imgflip request or alter the hosted image.
+The system SHALL provide `memectl delete meme <name> [<name>...]` to remove one or more named managed-meme records from the selected local inventory. It SHALL validate every supplied name, SHALL require at least one name, SHALL process supplied names in order as independent local inventory operations, and SHALL make no Imgflip request or alter the hosted image.
 
 #### Scenario: Managed memes are deleted
 - **WHEN** a user runs `memectl delete meme <name> [<name>...]` with valid names present in the selected inventory
@@ -19,6 +19,10 @@ The system SHALL provide `memectl delete meme <name> [<name>...]` to remove one 
 - **WHEN** a user runs `memectl delete meme <name> [<name>...]` with the same valid present name more than once
 - **THEN** the system SHALL delete and report the first occurrence, SHALL report each later occurrence as not found, and SHALL return a non-zero result
 
+#### Scenario: A later deletion fails
+- **WHEN** a user runs `memectl delete meme <name> [<name>...]` and an inventory operation for a later valid name fails after earlier names were deleted
+- **THEN** the system SHALL report the failure for that name, SHALL retain the successful earlier deletions, and SHALL return a non-zero result
+
 #### Scenario: No named memes exist
 - **WHEN** a user runs `memectl delete meme <name> [<name>...]` and every valid name is absent from the selected inventory
 - **THEN** the system SHALL return a non-zero actionable not-found error and SHALL not modify the inventory
@@ -27,9 +31,13 @@ The system SHALL provide `memectl delete meme <name> [<name>...]` to remove one 
 - **WHEN** a user omits all meme names or supplies an invalid local meme name
 - **THEN** the system SHALL return a non-zero actionable error and SHALL not modify the inventory
 
-#### Scenario: Inventory state cannot be safely updated
-- **WHEN** the selected inventory cannot be read, is malformed, contains invalid records, has an unsupported format version, or cannot be persisted
-- **THEN** the system SHALL return a non-zero actionable error and SHALL preserve the existing inventory contents
+#### Scenario: An inventory operation fails before replacement
+- **WHEN** an individual inventory operation cannot be read, is malformed, contains invalid records, has an unsupported format version, or fails before replacing the inventory document
+- **THEN** the system SHALL return a non-zero actionable error for that name and SHALL preserve the inventory contents from before that operation
+
+#### Scenario: Replacement succeeds but durable persistence cannot be confirmed
+- **WHEN** an individual inventory operation replaces the inventory document but cannot confirm directory persistence afterward
+- **THEN** the system SHALL return a non-zero actionable error that states the deletion may have succeeded but durable persistence could not be confirmed
 
 ### Requirement: Document local-only meme deletion
 The README SHALL document `memectl delete meme <name> [<name>...]` and clarify that it removes only the selected local managed-meme records without contacting Imgflip or deleting the hosted image.

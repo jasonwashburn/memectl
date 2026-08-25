@@ -32,14 +32,14 @@ func TestDeleteMeme(t *testing.T) {
 		wantCalls int
 	}{
 		{name: "single record without credentials", args: []string{"first"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, want: "Meme \"first\" deleted.\n", wantMemes: []inventory.Meme{}, wantCalls: 1},
-		{name: "multiple records preserve others", args: []string{"first", "third"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}, {Name: "third"}}}, want: "Meme \"first\" deleted.\nMeme \"third\" deleted.\n", wantMemes: []inventory.Meme{{Name: "second"}}, wantCalls: 1},
-		{name: "final records", args: []string{"first", "second"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}}}, want: "Meme \"first\" deleted.\nMeme \"second\" deleted.\n", wantMemes: []inventory.Meme{}, wantCalls: 1},
-		{name: "mixed present and absent", args: []string{"first", "missing"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}}}, want: "Meme \"first\" deleted.\n", wantErr: "meme \"missing\" not found", wantMemes: []inventory.Meme{{Name: "second"}}, wantCalls: 1},
-		{name: "duplicate name", args: []string{"first", "first"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, want: "Meme \"first\" deleted.\n", wantErr: "meme \"first\" not found", wantMemes: []inventory.Meme{}, wantCalls: 1},
-		{name: "all absent", args: []string{"missing", "unknown"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, wantErr: "meme \"missing\" not found; meme \"unknown\" not found", wantMemes: []inventory.Meme{{Name: "first"}}, wantCalls: 1},
+		{name: "multiple records preserve others", args: []string{"first", "third"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}, {Name: "third"}}}, want: "Meme \"first\" deleted.\nMeme \"third\" deleted.\n", wantMemes: []inventory.Meme{{Name: "second"}}, wantCalls: 2},
+		{name: "final records", args: []string{"first", "second"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}}}, want: "Meme \"first\" deleted.\nMeme \"second\" deleted.\n", wantMemes: []inventory.Meme{}, wantCalls: 2},
+		{name: "mixed present and absent", args: []string{"first", "missing"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}}}, want: "Meme \"first\" deleted.\n", wantErr: "meme \"missing\" not found", wantMemes: []inventory.Meme{{Name: "second"}}, wantCalls: 2},
+		{name: "duplicate name", args: []string{"first", "first"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, want: "Meme \"first\" deleted.\n", wantErr: "meme \"first\" not found", wantMemes: []inventory.Meme{}, wantCalls: 2},
+		{name: "all absent", args: []string{"missing", "unknown"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, wantErr: "meme \"missing\" not found; meme \"unknown\" not found", wantMemes: []inventory.Meme{{Name: "first"}}, wantCalls: 2},
 		{name: "missing name", store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, wantErr: "at least one local meme name is required", wantMemes: []inventory.Meme{{Name: "first"}}},
 		{name: "invalid name", args: []string{"Not-valid"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}}}, wantErr: "name \"Not-valid\" must be a DNS-label-like value", wantMemes: []inventory.Meme{{Name: "first"}}},
-		{name: "storage failure", args: []string{"first"}, store: &fakeMemeStore{removeErr: errors.New("disk full")}, wantErr: "failed to delete meme: disk full", wantCalls: 1},
+		{name: "later storage failure", args: []string{"first", "second"}, store: &fakeMemeStore{memes: []inventory.Meme{{Name: "first"}, {Name: "second"}}, removeErrs: map[string]error{"second": errors.New("disk full")}}, want: "Meme \"first\" deleted.\n", wantErr: "delete meme \"second\": disk full", wantMemes: []inventory.Meme{{Name: "second"}}, wantCalls: 2},
 	}
 
 	for _, test := range tests {

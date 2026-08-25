@@ -18,6 +18,9 @@ const version = 1
 
 var namePattern = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
 
+// ErrNotFound indicates that a requested meme is not in the inventory.
+var ErrNotFound = errors.New("meme not found")
+
 // Meme is a locally managed Imgflip creation.
 type Meme struct {
 	Name       string    `json:"name"`
@@ -35,12 +38,13 @@ type document struct {
 
 // Store manages locally stored memes.
 type Store struct {
-	path string
+	path    string
+	syncDir func(string) error
 }
 
 // New returns a Store for path.
 func New(path string) *Store {
-	return &Store{path: path}
+	return &Store{path: path, syncDir: syncDirectory}
 }
 
 // Path returns the inventory file path.
@@ -102,42 +106,27 @@ func (s *Store) Add(meme Meme) error {
 	})
 }
 
-// Remove deletes the requested stored memes and returns requested names that were absent.
-func (s *Store) Remove(names []string) ([]string, error) {
-	var absent []string
-	err := s.withLock(func() error {
+// Remove deletes one stored meme.
+func (s *Store) Remove(name string) error {
+	return s.withLock(func() error {
 		memes, err := s.Load()
 		if err != nil {
 			return err
 		}
-		available := make(map[string]bool, len(memes))
+		retained := make([]Meme, 0, len(memes))
+		removed := false
 		for _, meme := range memes {
-			available[meme.Name] = true
-		}
-		removed := make(map[string]bool, len(names))
-		for _, name := range names {
-			if available[name] {
-				delete(available, name)
-				removed[name] = true
+			if meme.Name == name {
+				removed = true
 				continue
 			}
-			absent = append(absent, name)
+			retained = append(retained, meme)
 		}
-		if len(removed) == 0 {
-			return nil
-		}
-		retained := make([]Meme, 0, len(memes)-len(removed))
-		for _, meme := range memes {
-			if !removed[meme.Name] {
-				retained = append(retained, meme)
-			}
+		if !removed {
+			return fmt.Errorf("meme %q: %w", name, ErrNotFound)
 		}
 		return s.write(document{Version: version, Memes: retained})
 	})
-	if err != nil {
-		return nil, err
-	}
-	return absent, nil
 }
 
 // withLock serializes mutations that load and atomically replace the inventory.
@@ -187,13 +176,20 @@ func (s *Store) write(doc document) error {
 	if err := os.Rename(temporaryPath, s.path); err != nil {
 		return fmt.Errorf("replace meme inventory %q: %w", s.path, err)
 	}
-	directory, err := os.Open(filepath.Dir(s.path))
+	if err := s.syncDir(filepath.Dir(s.path)); err != nil {
+		return fmt.Errorf("replace meme inventory %q: replacement may have succeeded but durable persistence could not be confirmed: %w", s.path, err)
+	}
+	return nil
+}
+
+func syncDirectory(path string) error {
+	directory, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("open meme inventory directory for %q: %w", s.path, err)
+		return fmt.Errorf("open directory: %w", err)
 	}
 	defer func() { _ = directory.Close() }()
 	if err := directory.Sync(); err != nil {
-		return fmt.Errorf("sync meme inventory directory for %q: %w", s.path, err)
+		return fmt.Errorf("sync directory: %w", err)
 	}
 	return nil
 }

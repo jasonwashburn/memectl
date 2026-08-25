@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -95,21 +96,17 @@ func TestAddSerializesConcurrentWriters(t *testing.T) {
 func TestRemove(t *testing.T) {
 	first := testMeme("first")
 	second := testMeme("second")
-	third := testMeme("third")
 
 	tests := []struct {
-		name       string
-		initial    []Meme
-		remove     []string
-		want       []Meme
-		wantAbsent []string
+		name    string
+		initial []Meme
+		remove  string
+		want    []Meme
+		wantErr error
 	}{
-		{name: "single record", initial: []Meme{first, second}, remove: []string{"first"}, want: []Meme{second}},
-		{name: "multiple records", initial: []Meme{first, second, third}, remove: []string{"first", "third"}, want: []Meme{second}},
-		{name: "final records", initial: []Meme{first, second}, remove: []string{"first", "second"}, want: []Meme{}},
-		{name: "mixed present and absent", initial: []Meme{first, second}, remove: []string{"first", "missing"}, want: []Meme{second}, wantAbsent: []string{"missing"}},
-		{name: "duplicate name", initial: []Meme{first, second}, remove: []string{"first", "first"}, want: []Meme{second}, wantAbsent: []string{"first"}},
-		{name: "wholly absent", initial: []Meme{first}, remove: []string{"missing", "unknown"}, want: []Meme{first}, wantAbsent: []string{"missing", "unknown"}},
+		{name: "single record", initial: []Meme{first, second}, remove: "first", want: []Meme{second}},
+		{name: "final record", initial: []Meme{first}, remove: "first", want: []Meme{}},
+		{name: "absent", initial: []Meme{first}, remove: "missing", want: []Meme{first}, wantErr: ErrNotFound},
 	}
 
 	for _, test := range tests {
@@ -119,9 +116,12 @@ func TestRemove(t *testing.T) {
 				require.NoError(t, store.Add(meme))
 			}
 
-			absent, err := store.Remove(test.remove)
-			require.NoError(t, err)
-			assert.Equal(t, test.wantAbsent, absent)
+			err := store.Remove(test.remove)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
 			got, err := store.Load()
 			require.NoError(t, err)
 			assert.Equal(t, test.want, got)
@@ -134,7 +134,7 @@ func TestRemovePreservesInvalidState(t *testing.T) {
 	contents := "{"
 	require.NoError(t, os.WriteFile(path, []byte(contents), 0o600))
 
-	_, err := New(path).Remove([]string{"meme"})
+	err := New(path).Remove("meme")
 	require.Error(t, err)
 	assert.ErrorContains(t, err, "malformed JSON")
 	got, readErr := os.ReadFile(path)
@@ -153,11 +153,24 @@ func TestRemoveWriteFailurePreservesInventory(t *testing.T) {
 	require.NoError(t, os.Chmod(directory, 0o500))
 	t.Cleanup(func() { _ = os.Chmod(directory, 0o700) })
 
-	_, err = store.Remove([]string{"meme"})
+	err = store.Remove("meme")
 	require.Error(t, err)
 	got, readErr := os.ReadFile(path)
 	require.NoError(t, readErr)
 	assert.Equal(t, contents, got)
+}
+
+func TestRemoveReportsDurabilityUncertainty(t *testing.T) {
+	store := New(filepath.Join(t.TempDir(), "memes.json"))
+	require.NoError(t, store.Add(testMeme("meme")))
+	store.syncDir = func(string) error { return errors.New("sync failed") }
+
+	err := store.Remove("meme")
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "replacement may have succeeded but durable persistence could not be confirmed")
+	memes, loadErr := store.Load()
+	require.NoError(t, loadErr)
+	assert.Empty(t, memes)
 }
 
 func testMeme(name string) Meme {
