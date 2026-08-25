@@ -163,9 +163,11 @@ func TestCreateMeme(t *testing.T) {
 }
 
 type fakeMemeStore struct {
-	memes   []inventory.Meme
-	loadErr error
-	addErr  error
+	memes       []inventory.Meme
+	loadErr     error
+	addErr      error
+	removeErr   error
+	removeCalls int
 }
 
 func (s *fakeMemeStore) Load() ([]inventory.Meme, error) { return s.memes, s.loadErr }
@@ -175,6 +177,34 @@ func (s *fakeMemeStore) Add(meme inventory.Meme) error {
 	}
 	s.memes = append(s.memes, meme)
 	return nil
+}
+
+func (s *fakeMemeStore) Remove(names []string) ([]string, error) {
+	s.removeCalls++
+	if s.removeErr != nil {
+		return nil, s.removeErr
+	}
+	wanted := make(map[string]bool, len(names))
+	for _, name := range names {
+		wanted[name] = true
+	}
+	retained := make([]inventory.Meme, 0, len(s.memes))
+	found := make(map[string]bool, len(names))
+	for _, meme := range s.memes {
+		if wanted[meme.Name] {
+			found[meme.Name] = true
+			continue
+		}
+		retained = append(retained, meme)
+	}
+	var absent []string
+	for _, name := range names {
+		if !found[name] {
+			absent = append(absent, name)
+		}
+	}
+	s.memes = retained
+	return absent, nil
 }
 
 func credentials(key string) string {

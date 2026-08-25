@@ -91,3 +91,74 @@ func TestAddSerializesConcurrentWriters(t *testing.T) {
 	SortByName(memes)
 	assert.Equal(t, []Meme{first, second}, memes)
 }
+
+func TestRemove(t *testing.T) {
+	first := testMeme("first")
+	second := testMeme("second")
+	third := testMeme("third")
+
+	tests := []struct {
+		name       string
+		initial    []Meme
+		remove     []string
+		want       []Meme
+		wantAbsent []string
+	}{
+		{name: "single record", initial: []Meme{first, second}, remove: []string{"first"}, want: []Meme{second}},
+		{name: "multiple records", initial: []Meme{first, second, third}, remove: []string{"first", "third"}, want: []Meme{second}},
+		{name: "final records", initial: []Meme{first, second}, remove: []string{"first", "second"}, want: []Meme{}},
+		{name: "mixed present and absent", initial: []Meme{first, second}, remove: []string{"first", "missing"}, want: []Meme{second}, wantAbsent: []string{"missing"}},
+		{name: "wholly absent", initial: []Meme{first}, remove: []string{"missing", "unknown"}, want: []Meme{first}, wantAbsent: []string{"missing", "unknown"}},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			store := New(filepath.Join(t.TempDir(), "memes.json"))
+			for _, meme := range test.initial {
+				require.NoError(t, store.Add(meme))
+			}
+
+			absent, err := store.Remove(test.remove)
+			require.NoError(t, err)
+			assert.Equal(t, test.wantAbsent, absent)
+			got, err := store.Load()
+			require.NoError(t, err)
+			assert.Equal(t, test.want, got)
+		})
+	}
+}
+
+func TestRemovePreservesInvalidState(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "memes.json")
+	contents := "{"
+	require.NoError(t, os.WriteFile(path, []byte(contents), 0o600))
+
+	_, err := New(path).Remove([]string{"meme"})
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "malformed JSON")
+	got, readErr := os.ReadFile(path)
+	require.NoError(t, readErr)
+	assert.Equal(t, contents, string(got))
+}
+
+func TestRemoveWriteFailurePreservesInventory(t *testing.T) {
+	directory := t.TempDir()
+	path := filepath.Join(directory, "memes.json")
+	store := New(path)
+	meme := testMeme("meme")
+	require.NoError(t, store.Add(meme))
+	contents, err := os.ReadFile(path)
+	require.NoError(t, err)
+	require.NoError(t, os.Chmod(directory, 0o500))
+	t.Cleanup(func() { _ = os.Chmod(directory, 0o700) })
+
+	_, err = store.Remove([]string{"meme"})
+	require.Error(t, err)
+	got, readErr := os.ReadFile(path)
+	require.NoError(t, readErr)
+	assert.Equal(t, contents, got)
+}
+
+func testMeme(name string) Meme {
+	return Meme{Name: name, TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image/" + name, PageURL: "https://page/" + name, CreatedAt: time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)}
+}

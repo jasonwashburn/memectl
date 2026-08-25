@@ -33,7 +33,7 @@ type document struct {
 	Memes   []Meme `json:"memes"`
 }
 
-// Store reads and appends managed memes.
+// Store manages locally stored memes.
 type Store struct {
 	path string
 }
@@ -112,6 +112,53 @@ func (s *Store) Add(meme Meme) error {
 	}
 	memes = append(memes, meme)
 	return s.write(document{Version: version, Memes: memes})
+}
+
+// Remove deletes the requested stored memes and returns requested names that were absent.
+func (s *Store) Remove(names []string) ([]string, error) {
+	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
+		return nil, fmt.Errorf("create meme inventory directory for %q: %w", s.path, err)
+	}
+	lock, err := os.OpenFile(s.path+".lock", os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		return nil, fmt.Errorf("lock meme inventory %q: %w", s.path, err)
+	}
+	defer func() { _ = lock.Close() }()
+	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
+		return nil, fmt.Errorf("lock meme inventory %q: %w", s.path, err)
+	}
+	defer func() { _ = syscall.Flock(int(lock.Fd()), syscall.LOCK_UN) }()
+
+	memes, err := s.Load()
+	if err != nil {
+		return nil, err
+	}
+	wanted := make(map[string]bool, len(names))
+	for _, name := range names {
+		wanted[name] = true
+	}
+	retained := make([]Meme, 0, len(memes))
+	found := make(map[string]bool, len(names))
+	for _, meme := range memes {
+		if wanted[meme.Name] {
+			found[meme.Name] = true
+			continue
+		}
+		retained = append(retained, meme)
+	}
+	var absent []string
+	for _, name := range names {
+		if !found[name] {
+			absent = append(absent, name)
+		}
+	}
+	if len(found) == 0 {
+		return absent, nil
+	}
+	if err := s.write(document{Version: version, Memes: retained}); err != nil {
+		return nil, err
+	}
+	return absent, nil
 }
 
 func (s *Store) write(doc document) error {
