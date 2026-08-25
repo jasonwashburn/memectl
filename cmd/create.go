@@ -18,6 +18,7 @@ type memeCreator interface {
 type memeStore interface {
 	Load() ([]inventory.Meme, error)
 	Add(inventory.Meme) error
+	Remove(string) error
 }
 
 func newCreateCmd(client memeCreator, store memeStore, getenv func(string) string) *cobra.Command {

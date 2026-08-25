@@ -1,6 +1,7 @@
 package inventory
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -90,4 +91,88 @@ func TestAddSerializesConcurrentWriters(t *testing.T) {
 	require.NoError(t, err)
 	SortByName(memes)
 	assert.Equal(t, []Meme{first, second}, memes)
+}
+
+func TestRemove(t *testing.T) {
+	first := testMeme("first")
+	second := testMeme("second")
+
+	tests := []struct {
+		name    string
+		initial []Meme
+		remove  string
+		want    []Meme
+		wantErr error
+	}{
+		{name: "single record", initial: []Meme{first, second}, remove: "first", want: []Meme{second}},
+		{name: "final record", initial: []Meme{first}, remove: "first", want: []Meme{}},
+		{name: "absent", initial: []Meme{first}, remove: "missing", want: []Meme{first}, wantErr: ErrNotFound},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			store := New(filepath.Join(t.TempDir(), "memes.json"))
+			for _, meme := range test.initial {
+				require.NoError(t, store.Add(meme))
+			}
+
+			err := store.Remove(test.remove)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+			got, err := store.Load()
+			require.NoError(t, err)
+			assert.Equal(t, test.want, got)
+		})
+	}
+}
+
+func TestRemovePreservesInvalidState(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "memes.json")
+	contents := "{"
+	require.NoError(t, os.WriteFile(path, []byte(contents), 0o600))
+
+	err := New(path).Remove("meme")
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "malformed JSON")
+	got, readErr := os.ReadFile(path)
+	require.NoError(t, readErr)
+	assert.Equal(t, contents, string(got))
+}
+
+func TestRemoveWriteFailurePreservesInventory(t *testing.T) {
+	directory := t.TempDir()
+	path := filepath.Join(directory, "memes.json")
+	store := New(path)
+	meme := testMeme("meme")
+	require.NoError(t, store.Add(meme))
+	contents, err := os.ReadFile(path)
+	require.NoError(t, err)
+	require.NoError(t, os.Chmod(directory, 0o500))
+	t.Cleanup(func() { _ = os.Chmod(directory, 0o700) })
+
+	err = store.Remove("meme")
+	require.Error(t, err)
+	got, readErr := os.ReadFile(path)
+	require.NoError(t, readErr)
+	assert.Equal(t, contents, got)
+}
+
+func TestRemoveReportsDurabilityUncertainty(t *testing.T) {
+	store := New(filepath.Join(t.TempDir(), "memes.json"))
+	require.NoError(t, store.Add(testMeme("meme")))
+	store.syncDir = func(string) error { return errors.New("sync failed") }
+
+	err := store.Remove("meme")
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "replacement may have succeeded but durable persistence could not be confirmed")
+	memes, loadErr := store.Load()
+	require.NoError(t, loadErr)
+	assert.Empty(t, memes)
+}
+
+func testMeme(name string) Meme {
+	return Meme{Name: name, TemplateID: "1", Texts: []string{"text"}, ImageURL: "https://image/" + name, PageURL: "https://page/" + name, CreatedAt: time.Date(2026, time.August, 24, 12, 0, 0, 0, time.UTC)}
 }

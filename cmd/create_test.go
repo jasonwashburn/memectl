@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -163,9 +164,12 @@ func TestCreateMeme(t *testing.T) {
 }
 
 type fakeMemeStore struct {
-	memes   []inventory.Meme
-	loadErr error
-	addErr  error
+	memes       []inventory.Meme
+	loadErr     error
+	addErr      error
+	removeErr   error
+	removeErrs  map[string]error
+	removeCalls int
 }
 
 func (s *fakeMemeStore) Load() ([]inventory.Meme, error) { return s.memes, s.loadErr }
@@ -175,6 +179,23 @@ func (s *fakeMemeStore) Add(meme inventory.Meme) error {
 	}
 	s.memes = append(s.memes, meme)
 	return nil
+}
+
+func (s *fakeMemeStore) Remove(name string) error {
+	s.removeCalls++
+	if s.removeErr != nil {
+		return s.removeErr
+	}
+	if err := s.removeErrs[name]; err != nil {
+		return err
+	}
+	for i, meme := range s.memes {
+		if meme.Name == name {
+			s.memes = append(s.memes[:i], s.memes[i+1:]...)
+			return nil
+		}
+	}
+	return fmt.Errorf("meme %q: %w", name, inventory.ErrNotFound)
 }
 
 func credentials(key string) string {

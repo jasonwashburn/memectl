@@ -27,6 +27,7 @@ func newRootCmd(store memeStore) *cobra.Command {
 		SilenceUsage:  true,
 	}
 	root.AddCommand(newCreateCmd(client, store, defaultGetenv))
+	root.AddCommand(newDeleteCmd(store))
 	root.AddCommand(newGetCmd(client, store))
 	return root
 }

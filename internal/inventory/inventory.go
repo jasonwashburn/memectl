@@ -18,6 +18,9 @@ const version = 1
 
 var namePattern = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
 
+// ErrNotFound indicates that a requested meme is not in the inventory.
+var ErrNotFound = errors.New("meme not found")
+
 // Meme is a locally managed Imgflip creation.
 type Meme struct {
 	Name       string    `json:"name"`
@@ -33,14 +36,15 @@ type document struct {
 	Memes   []Meme `json:"memes"`
 }
 
-// Store reads and appends managed memes.
+// Store manages locally stored memes.
 type Store struct {
-	path string
+	path    string
+	syncDir func(string) error
 }
 
 // New returns a Store for path.
 func New(path string) *Store {
-	return &Store{path: path}
+	return &Store{path: path, syncDir: syncDirectory}
 }
 
 // Path returns the inventory file path.
@@ -90,6 +94,43 @@ func (s *Store) Add(meme Meme) error {
 	if err := validateMeme(meme); err != nil {
 		return fmt.Errorf("save meme inventory %q: invalid record: %w", s.path, err)
 	}
+	return s.withLock(func() error {
+		memes, err := s.Load()
+		if err != nil {
+			return err
+		}
+		if contains(memes, meme.Name) {
+			return fmt.Errorf("save meme inventory %q: meme %q already exists", s.path, meme.Name)
+		}
+		return s.write(document{Version: version, Memes: append(memes, meme)})
+	})
+}
+
+// Remove deletes one stored meme.
+func (s *Store) Remove(name string) error {
+	return s.withLock(func() error {
+		memes, err := s.Load()
+		if err != nil {
+			return err
+		}
+		retained := make([]Meme, 0, len(memes))
+		removed := false
+		for _, meme := range memes {
+			if meme.Name == name {
+				removed = true
+				continue
+			}
+			retained = append(retained, meme)
+		}
+		if !removed {
+			return fmt.Errorf("meme %q: %w", name, ErrNotFound)
+		}
+		return s.write(document{Version: version, Memes: retained})
+	})
+}
+
+// withLock serializes mutations that load and atomically replace the inventory.
+func (s *Store) withLock(operation func() error) error {
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
 		return fmt.Errorf("create meme inventory directory for %q: %w", s.path, err)
 	}
@@ -102,16 +143,7 @@ func (s *Store) Add(meme Meme) error {
 		return fmt.Errorf("lock meme inventory %q: %w", s.path, err)
 	}
 	defer func() { _ = syscall.Flock(int(lock.Fd()), syscall.LOCK_UN) }()
-
-	memes, err := s.Load()
-	if err != nil {
-		return err
-	}
-	if contains(memes, meme.Name) {
-		return fmt.Errorf("save meme inventory %q: meme %q already exists", s.path, meme.Name)
-	}
-	memes = append(memes, meme)
-	return s.write(document{Version: version, Memes: memes})
+	return operation()
 }
 
 func (s *Store) write(doc document) error {
@@ -144,13 +176,20 @@ func (s *Store) write(doc document) error {
 	if err := os.Rename(temporaryPath, s.path); err != nil {
 		return fmt.Errorf("replace meme inventory %q: %w", s.path, err)
 	}
-	directory, err := os.Open(filepath.Dir(s.path))
+	if err := s.syncDir(filepath.Dir(s.path)); err != nil {
+		return fmt.Errorf("replace meme inventory %q: replacement may have succeeded but durable persistence could not be confirmed: %w", s.path, err)
+	}
+	return nil
+}
+
+func syncDirectory(path string) error {
+	directory, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("open meme inventory directory for %q: %w", s.path, err)
+		return fmt.Errorf("open directory: %w", err)
 	}
 	defer func() { _ = directory.Close() }()
 	if err := directory.Sync(); err != nil {
-		return fmt.Errorf("sync meme inventory directory for %q: %w", s.path, err)
+		return fmt.Errorf("sync directory: %w", err)
 	}
 	return nil
 }

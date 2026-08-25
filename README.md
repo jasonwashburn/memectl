@@ -70,6 +70,15 @@ memectl get memes
 memectl get memes --output wide
 ```
 
+Delete one or more locally managed meme records without contacting Imgflip:
+
+```sh
+memectl delete meme writing-memes old-meme
+```
+
+This removes only the selected local inventory metadata. The hosted Imgflip
+image remains unchanged.
+
 Set `MEME_STORE` to use an exact alternate inventory file path. This is useful
 for isolated environments and tests:
 
