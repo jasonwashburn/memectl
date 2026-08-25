@@ -184,23 +184,24 @@ func (s *fakeMemeStore) Remove(names []string) ([]string, error) {
 	if s.removeErr != nil {
 		return nil, s.removeErr
 	}
-	wanted := make(map[string]bool, len(names))
-	for _, name := range names {
-		wanted[name] = true
-	}
-	retained := make([]inventory.Meme, 0, len(s.memes))
-	found := make(map[string]bool, len(names))
+	available := make(map[string]bool, len(s.memes))
 	for _, meme := range s.memes {
-		if wanted[meme.Name] {
-			found[meme.Name] = true
-			continue
-		}
-		retained = append(retained, meme)
+		available[meme.Name] = true
 	}
+	removed := make(map[string]bool, len(names))
 	var absent []string
 	for _, name := range names {
-		if !found[name] {
-			absent = append(absent, name)
+		if available[name] {
+			delete(available, name)
+			removed[name] = true
+			continue
+		}
+		absent = append(absent, name)
+	}
+	retained := make([]inventory.Meme, 0, len(s.memes)-len(removed))
+	for _, meme := range s.memes {
+		if !removed[meme.Name] {
+			retained = append(retained, meme)
 		}
 	}
 	s.memes = retained

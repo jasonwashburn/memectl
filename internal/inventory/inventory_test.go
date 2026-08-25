@@ -108,6 +108,7 @@ func TestRemove(t *testing.T) {
 		{name: "multiple records", initial: []Meme{first, second, third}, remove: []string{"first", "third"}, want: []Meme{second}},
 		{name: "final records", initial: []Meme{first, second}, remove: []string{"first", "second"}, want: []Meme{}},
 		{name: "mixed present and absent", initial: []Meme{first, second}, remove: []string{"first", "missing"}, want: []Meme{second}, wantAbsent: []string{"missing"}},
+		{name: "duplicate name", initial: []Meme{first, second}, remove: []string{"first", "first"}, want: []Meme{second}, wantAbsent: []string{"first"}},
 		{name: "wholly absent", initial: []Meme{first}, remove: []string{"missing", "unknown"}, want: []Meme{first}, wantAbsent: []string{"missing", "unknown"}},
 	}
 

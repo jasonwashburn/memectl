@@ -15,6 +15,10 @@ The system SHALL provide `memectl delete meme <name> [<name>...]` to remove one 
 - **WHEN** a user runs `memectl delete meme <name> [<name>...]` with valid names that are present and valid names that are absent from the selected inventory
 - **THEN** the system SHALL remove and report each present local record, SHALL report every absent name as not found, and SHALL return a non-zero result
 
+#### Scenario: A name is requested more than once
+- **WHEN** a user runs `memectl delete meme <name> [<name>...]` with the same valid present name more than once
+- **THEN** the system SHALL delete and report the first occurrence, SHALL report each later occurrence as not found, and SHALL return a non-zero result
+
 #### Scenario: No named memes exist
 - **WHEN** a user runs `memectl delete meme <name> [<name>...]` and every valid name is absent from the selected inventory
 - **THEN** the system SHALL return a non-zero actionable not-found error and SHALL not modify the inventory

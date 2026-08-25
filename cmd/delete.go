@@ -40,14 +40,19 @@ func newDeleteMemeCmd(store memeStore) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to delete meme: %w", err)
 			}
-			absentSet := make(map[string]bool, len(absent))
+			absentCount := make(map[string]int, len(absent))
 			for _, name := range absent {
-				absentSet[name] = true
+				absentCount[name]++
+			}
+			requestedCount := make(map[string]int, len(args))
+			for _, name := range args {
+				requestedCount[name]++
 			}
 			for _, name := range args {
-				if absentSet[name] {
+				if requestedCount[name] == absentCount[name] {
 					continue
 				}
+				requestedCount[name]--
 				if _, err := fmt.Fprintf(cmd.OutOrStdout(), "Meme %q deleted.\n", name); err != nil {
 					return fmt.Errorf("write deleted meme: %w", err)
 				}

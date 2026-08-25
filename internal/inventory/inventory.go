@@ -90,6 +90,58 @@ func (s *Store) Add(meme Meme) error {
 	if err := validateMeme(meme); err != nil {
 		return fmt.Errorf("save meme inventory %q: invalid record: %w", s.path, err)
 	}
+	return s.withLock(func() error {
+		memes, err := s.Load()
+		if err != nil {
+			return err
+		}
+		if contains(memes, meme.Name) {
+			return fmt.Errorf("save meme inventory %q: meme %q already exists", s.path, meme.Name)
+		}
+		return s.write(document{Version: version, Memes: append(memes, meme)})
+	})
+}
+
+// Remove deletes the requested stored memes and returns requested names that were absent.
+func (s *Store) Remove(names []string) ([]string, error) {
+	var absent []string
+	err := s.withLock(func() error {
+		memes, err := s.Load()
+		if err != nil {
+			return err
+		}
+		available := make(map[string]bool, len(memes))
+		for _, meme := range memes {
+			available[meme.Name] = true
+		}
+		removed := make(map[string]bool, len(names))
+		for _, name := range names {
+			if available[name] {
+				delete(available, name)
+				removed[name] = true
+				continue
+			}
+			absent = append(absent, name)
+		}
+		if len(removed) == 0 {
+			return nil
+		}
+		retained := make([]Meme, 0, len(memes)-len(removed))
+		for _, meme := range memes {
+			if !removed[meme.Name] {
+				retained = append(retained, meme)
+			}
+		}
+		return s.write(document{Version: version, Memes: retained})
+	})
+	if err != nil {
+		return nil, err
+	}
+	return absent, nil
+}
+
+// withLock serializes mutations that load and atomically replace the inventory.
+func (s *Store) withLock(operation func() error) error {
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
 		return fmt.Errorf("create meme inventory directory for %q: %w", s.path, err)
 	}
@@ -102,63 +154,7 @@ func (s *Store) Add(meme Meme) error {
 		return fmt.Errorf("lock meme inventory %q: %w", s.path, err)
 	}
 	defer func() { _ = syscall.Flock(int(lock.Fd()), syscall.LOCK_UN) }()
-
-	memes, err := s.Load()
-	if err != nil {
-		return err
-	}
-	if contains(memes, meme.Name) {
-		return fmt.Errorf("save meme inventory %q: meme %q already exists", s.path, meme.Name)
-	}
-	memes = append(memes, meme)
-	return s.write(document{Version: version, Memes: memes})
-}
-
-// Remove deletes the requested stored memes and returns requested names that were absent.
-func (s *Store) Remove(names []string) ([]string, error) {
-	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {
-		return nil, fmt.Errorf("create meme inventory directory for %q: %w", s.path, err)
-	}
-	lock, err := os.OpenFile(s.path+".lock", os.O_CREATE|os.O_RDWR, 0o600)
-	if err != nil {
-		return nil, fmt.Errorf("lock meme inventory %q: %w", s.path, err)
-	}
-	defer func() { _ = lock.Close() }()
-	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
-		return nil, fmt.Errorf("lock meme inventory %q: %w", s.path, err)
-	}
-	defer func() { _ = syscall.Flock(int(lock.Fd()), syscall.LOCK_UN) }()
-
-	memes, err := s.Load()
-	if err != nil {
-		return nil, err
-	}
-	wanted := make(map[string]bool, len(names))
-	for _, name := range names {
-		wanted[name] = true
-	}
-	retained := make([]Meme, 0, len(memes))
-	found := make(map[string]bool, len(names))
-	for _, meme := range memes {
-		if wanted[meme.Name] {
-			found[meme.Name] = true
-			continue
-		}
-		retained = append(retained, meme)
-	}
-	var absent []string
-	for _, name := range names {
-		if !found[name] {
-			absent = append(absent, name)
-		}
-	}
-	if len(found) == 0 {
-		return absent, nil
-	}
-	if err := s.write(document{Version: version, Memes: retained}); err != nil {
-		return nil, err
-	}
-	return absent, nil
+	return operation()
 }
 
 func (s *Store) write(doc document) error {
