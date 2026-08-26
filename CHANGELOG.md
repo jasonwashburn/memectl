@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.4.0](https://github.com/jasonwashburn/memectl/compare/v0.3.0...v0.4.0) (2026-08-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* `memectl create meme` now requires a local name and `--template <template-id>`. Positional template IDs are no longer supported.
+
+### Features
+
+* add delete meme command ([#35](https://github.com/jasonwashburn/memectl/issues/35)) ([75510f4](https://github.com/jasonwashburn/memectl/commit/75510f45a87025e02a58016bd805b253fa41b73c))
+* add describe meme command ([#37](https://github.com/jasonwashburn/memectl/issues/37)) ([eb89177](https://github.com/jasonwashburn/memectl/commit/eb891771d5c13b2893bfd63c446b23fb374e2120))
+* add managed meme inventory ([#31](https://github.com/jasonwashburn/memectl/issues/31)) ([db149ff](https://github.com/jasonwashburn/memectl/commit/db149ff364bbf97ffecba47c6412d85d664baf82))
+
+
+### Continuous Integration
+
+* add test workflow ([#33](https://github.com/jasonwashburn/memectl/issues/33)) ([b7fbdfe](https://github.com/jasonwashburn/memectl/commit/b7fbdfe13ce212361fad30604e839986b6e48c16))
+
+
+### Specifications
+
+* archive add-delete-meme ([#36](https://github.com/jasonwashburn/memectl/issues/36)) ([a832733](https://github.com/jasonwashburn/memectl/commit/a8327338c0791c9d44adb0248ae8fbd1f254d455))
+* archive add-describe-meme ([#38](https://github.com/jasonwashburn/memectl/issues/38)) ([3208b56](https://github.com/jasonwashburn/memectl/commit/3208b5644010518778eedf037e6f3cd57cdd8938))
+* archive add-get-templates-wide-output ([#29](https://github.com/jasonwashburn/memectl/issues/29)) ([611a4f7](https://github.com/jasonwashburn/memectl/commit/611a4f786be75877ead51baeb7d16c8638bed65e))
+* archive add-managed-meme-inventory ([#32](https://github.com/jasonwashburn/memectl/issues/32)) ([0113daa](https://github.com/jasonwashburn/memectl/commit/0113daacb475f650d48d07ae8bf9286eacb02505))
+* archive add-testing-in-ci ([#34](https://github.com/jasonwashburn/memectl/issues/34)) ([f0ffbd4](https://github.com/jasonwashburn/memectl/commit/f0ffbd44475bb514b8c4424629ce8e47ac98e53c))
+
 ## [0.3.0](https://github.com/jasonwashburn/memectl/compare/v0.2.0...v0.3.0) (2026-08-23)
 
 
