@@ -70,6 +70,12 @@ memectl get memes
 memectl get memes --output wide
 ```
 
+Inspect one locally managed meme record without contacting Imgflip:
+
+```sh
+memectl describe meme writing-memes
+```
+
 Delete one or more locally managed meme records without contacting Imgflip:
 
 ```sh
