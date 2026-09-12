@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/jasonwashburn/memectl/compare/v0.4.0...v0.4.1) (2026-09-12)
+
+
+### Maintenance
+
+* **deps:** bump jdx/mise-action from 4.2.5 to 4.3.0 ([#39](https://github.com/jasonwashburn/memectl/issues/39)) ([1a04271](https://github.com/jasonwashburn/memectl/commit/1a04271ec6a6ab434cf581a975c9d21db7e57140))
+* **deps:** bump zizmorcore/zizmor-action from 0.6.2 to 0.6.3 ([#40](https://github.com/jasonwashburn/memectl/issues/40)) ([1b5297f](https://github.com/jasonwashburn/memectl/commit/1b5297f7c5003c9354e46bcd2f47f218456c8ec4))
+
 ## [0.4.0](https://github.com/jasonwashburn/memectl/compare/v0.3.0...v0.4.0) (2026-08-26)
 
 
